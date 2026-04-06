@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "erdospy"
+version = "0.1.0"
+description = "CLI and Python toolkit for exploring Erdős problems"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+  { name = "OpenCode" },
+]
+dependencies = [
+  "typer>=0.16.0",
+  "rich>=14.0.0",
+  "pydantic>=2.8.0",
+]
+
+[project.scripts]
+erdospy = "erdospy.cli.app:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/erdospy"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"data/erdos_problems.db" = "erdospy/data/erdos_problems.db"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
