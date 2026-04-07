@@ -8,9 +8,11 @@
 
 - 初始化一份本地可写数据库
 - 查询问题与评论
+- 汇总某一道题的最新进展
 - 跑一次增量更新
 - 看当天有哪些变化
 - 跟踪某个特定问题的记录
+- 搜索和查看相关讨论
 
 那就照这份文档直接跑。
 
@@ -96,6 +98,18 @@ erdospy search "Sidon set" --db ./.erdospy/erdos_problems.db --limit 5
 erdospy list --db ./.erdospy/erdos_problems.db --status open --tag primes --limit 10
 ```
 
+看某一道题的综合进展：
+
+```bash
+erdospy progress 12 --db ./.erdospy/erdos_problems.db
+```
+
+看一份简洁 digest：
+
+```bash
+erdospy digest --db ./.erdospy/erdos_problems.db --limit 10
+```
+
 ## 4. 跑一次增量更新
 
 执行：
@@ -138,7 +152,33 @@ erdospy daily --db ./.erdospy/erdos_problems.db --date 2026-04-07
 - 纯文本 change summary
 - rich 表格形式的 change log
 
-## 6. 查看单个问题的记录
+## 6. 查看论坛讨论与相关进展
+
+先做一版 forum 全量抓取：
+
+```bash
+erdospy forum sync --db ./.erdospy/erdos_problems.db --limit 20 --show-top 5
+```
+
+看最新讨论：
+
+```bash
+erdospy forum latest --db ./.erdospy/erdos_problems.db --limit 10
+```
+
+看某题相关讨论：
+
+```bash
+erdospy forum related 12 --db ./.erdospy/erdos_problems.db
+```
+
+搜索讨论内容：
+
+```bash
+erdospy forum search "formalised" --db ./.erdospy/erdos_problems.db --limit 10
+```
+
+## 7. 查看单个问题的记录
 
 例如查看 `749`：
 
@@ -154,7 +194,7 @@ erdospy record 42 --db ./.erdospy/erdos_problems.db
 
 当前 `record` 会展示该问题在本地变更日志里的记录。
 
-## 7. 一套最短日常流程
+## 8. 一套最短日常流程
 
 每天如果只想快速刷新和查看变化，直接跑：
 
@@ -163,10 +203,11 @@ cd /home/zhihong/Playground/core/erdospy
 
 erdospy update --db ./.erdospy/erdos_problems.db
 erdospy daily --db ./.erdospy/erdos_problems.db
+erdospy progress 12 --db ./.erdospy/erdos_problems.db
 erdospy record 749 --db ./.erdospy/erdos_problems.db
 ```
 
-## 8. 从零完整跑一遍
+## 9. 从零完整跑一遍
 
 如果你要从头开始完整演示一次：
 
@@ -177,25 +218,31 @@ pip install -e .
 erdospy build --force
 erdospy stats --db ./.erdospy/erdos_problems.db
 erdospy get 42 --db ./.erdospy/erdos_problems.db --comments
+erdospy forum sync --db ./.erdospy/erdos_problems.db --limit 20 --show-top 5
 erdospy update --db ./.erdospy/erdos_problems.db
+erdospy progress 12 --db ./.erdospy/erdos_problems.db
+erdospy digest --db ./.erdospy/erdos_problems.db --limit 10
 erdospy daily --db ./.erdospy/erdos_problems.db
 erdospy record 749 --db ./.erdospy/erdos_problems.db
 ```
 
-## 9. 当前实现边界
+## 10. 当前实现边界
 
 当前已经完成：
 
 - Python 包安装
 - CLI 查询能力
+- 问题级 progress 汇总
+- digest 摘要
 - 本地工作库初始化
 - forum 原生增量更新
+- forum 全量抓取
+- 讨论搜索与相关讨论查看
 - daily 进度查看
 - 单题 record 查看
 
 当前还没完成：
 
-- `erdospy forum` 独立命令
 - `erdospy changelog` 独立命令
 - 对 problem page 本身的更深层增量抓取
 - status / comments / reactions 的完整原生 diff
@@ -203,7 +250,9 @@ erdospy record 749 --db ./.erdospy/erdos_problems.db
 所以现在最适合把它当作：
 
 - 一个本地 CLI 工作台
+- 一个 Erdős problems 分析工具
 - 一个 forum activity tracker
 - 一个日常更新和单题追踪工具
+- 一个命令行讨论检索与问题进展查看工具
 
 而不是最终完整版本。
