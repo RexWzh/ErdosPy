@@ -8,7 +8,7 @@ from importlib.resources import as_file, files
 from pathlib import Path
 from typing import Any
 
-from .models import Comment, Problem
+from .models import ChangelogEntry, Comment, ForumThread, Problem
 
 
 def default_db_path() -> Path:
@@ -120,6 +120,163 @@ class ErdosDB:
         )
         row = cursor.fetchone()
         return self._row_to_problem(row) if row else None
+
+    def ensure_tracking_schema(self) -> None:
+        self.conn.executescript(
+            """
+            CREATE TABLE IF NOT EXISTS forum_threads (
+                problem_id INTEGER,
+                post_count INTEGER,
+                last_activity TEXT,
+                last_activity_ts TEXT,
+                last_author TEXT,
+                fetched_at TEXT,
+                PRIMARY KEY (problem_id),
+                FOREIGN KEY (problem_id) REFERENCES problems(id)
+            );
+
+            CREATE TABLE IF NOT EXISTS forum_history (
+                id INTEGER PRIMARY KEY,
+                problem_id INTEGER,
+                post_count INTEGER,
+                last_author TEXT,
+                recorded_at TEXT,
+                FOREIGN KEY (problem_id) REFERENCES problems(id)
+            );
+
+            CREATE TABLE IF NOT EXISTS status_changes (
+                id INTEGER PRIMARY KEY,
+                problem_id INTEGER,
+                old_status TEXT,
+                new_status TEXT,
+                detected_at TEXT,
+                FOREIGN KEY (problem_id) REFERENCES problems(id)
+            );
+
+            CREATE TABLE IF NOT EXISTS changelog (
+                id INTEGER PRIMARY KEY,
+                change_type TEXT,
+                problem_number TEXT,
+                description TEXT,
+                detected_at TEXT
+            );
+            """
+        )
+        self.conn.commit()
+
+    def get_problem_id(self, number: str | int) -> int | None:
+        cursor = self.conn.execute(
+            "SELECT id FROM problems WHERE number = ?", (str(number),)
+        )
+        row = cursor.fetchone()
+        return int(row[0]) if row else None
+
+    def get_forum_thread(self, problem_number: str | int) -> dict[str, Any] | None:
+        problem_id = self.get_problem_id(problem_number)
+        if problem_id is None:
+            return None
+
+        cursor = self.conn.execute(
+            """
+            SELECT post_count, last_activity, last_activity_ts, last_author, fetched_at
+            FROM forum_threads WHERE problem_id = ?
+            """,
+            (problem_id,),
+        )
+        row = cursor.fetchone()
+        if row is None:
+            return None
+        return {
+            "post_count": int(row["post_count"] or 0),
+            "last_activity": str(row["last_activity"] or ""),
+            "last_activity_ts": str(row["last_activity_ts"] or ""),
+            "last_author": str(row["last_author"] or ""),
+            "fetched_at": str(row["fetched_at"] or ""),
+        }
+
+    def upsert_forum_thread(self, thread: ForumThread, *, fetched_at: str) -> None:
+        problem_id = self.get_problem_id(thread.problem_number)
+        if problem_id is None:
+            return
+
+        self.conn.execute(
+            """
+            INSERT INTO forum_threads (
+                problem_id, post_count, last_activity, last_activity_ts, last_author, fetched_at
+            ) VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(problem_id) DO UPDATE SET
+                post_count = excluded.post_count,
+                last_activity = excluded.last_activity,
+                last_activity_ts = excluded.last_activity_ts,
+                last_author = excluded.last_author,
+                fetched_at = excluded.fetched_at
+            """,
+            (
+                problem_id,
+                thread.post_count,
+                thread.last_activity,
+                thread.last_activity_ts,
+                thread.last_author,
+                fetched_at,
+            ),
+        )
+        self.conn.execute(
+            """
+            INSERT INTO forum_history (problem_id, post_count, last_author, recorded_at)
+            VALUES (?, ?, ?, ?)
+            """,
+            (problem_id, thread.post_count, thread.last_author, fetched_at),
+        )
+        self.conn.commit()
+
+    def insert_changelog_entry(self, entry: ChangelogEntry) -> None:
+        self.conn.execute(
+            """
+            INSERT INTO changelog (change_type, problem_number, description, detected_at)
+            VALUES (?, ?, ?, ?)
+            """,
+            (
+                entry.change_type,
+                entry.problem_number,
+                entry.description,
+                entry.detected_at,
+            ),
+        )
+        self.conn.commit()
+
+    def get_recent_changelog(
+        self, *, limit: int = 50, problem_number: str | None = None
+    ) -> list[ChangelogEntry]:
+        if problem_number is None:
+            cursor = self.conn.execute(
+                """
+                SELECT change_type, problem_number, description, detected_at
+                FROM changelog
+                ORDER BY detected_at DESC, id DESC
+                LIMIT ?
+                """,
+                (limit,),
+            )
+        else:
+            cursor = self.conn.execute(
+                """
+                SELECT change_type, problem_number, description, detected_at
+                FROM changelog
+                WHERE problem_number = ?
+                ORDER BY detected_at DESC, id DESC
+                LIMIT ?
+                """,
+                (problem_number, limit),
+            )
+        return [
+            ChangelogEntry(
+                change_type=str(row["change_type"]),
+                problem_number=str(row["problem_number"]),
+                description=str(row["description"]),
+                detected_at=str(row["detected_at"]),
+            )
+            for row in cursor
+        ]
 
     def search(
         self,

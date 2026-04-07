@@ -5,17 +5,15 @@ from __future__ import annotations
 import json
 import shutil
 import sqlite3
-import subprocess
-import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from tempfile import TemporaryDirectory
 from typing import Any
 
 from pydantic import BaseModel, Field
 
-from .db import default_db_path
+from .db import ErdosDB, default_db_path
+from .scraper.incremental import IncrementalUpdater
 
 
 def default_workspace_db_path() -> Path:
@@ -75,6 +73,9 @@ def initialize_workspace(db_path: Path | None = None, force: bool = False) -> Pa
         return resolved
 
     shutil.copy2(default_db_path(), resolved)
+    with ErdosDB(resolved) as db:
+        db.ensure_tracking_schema()
+
     snapshot = snapshot_problem_index(resolved)
     snapshot_path_for_db(resolved).write_text(
         json.dumps(snapshot, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -210,44 +211,6 @@ def diff_snapshots(
     return changes
 
 
-def _run_upstream_update(
-    *,
-    db_path: Path,
-    navigator_root: Path,
-    pull: bool,
-    quick: bool,
-    comments_only: bool,
-) -> None:
-    navigator_db = navigator_root / "data" / "erdos_problems.db"
-    update_script = navigator_root / "scrapers" / "update_all.py"
-    if not update_script.exists():
-        raise FileNotFoundError(f"Could not locate update script at {update_script}")
-
-    with TemporaryDirectory(prefix="erdospy-update-") as temp_dir:
-        temp_dir_path = Path(temp_dir)
-        backup_path = temp_dir_path / "navigator-original.db"
-        if navigator_db.exists():
-            shutil.copy2(navigator_db, backup_path)
-
-        try:
-            shutil.copy2(db_path, navigator_db)
-            command = [sys.executable, str(update_script)]
-            if pull:
-                command.append("--pull")
-            if quick:
-                command.append("--quick")
-            if comments_only:
-                command.append("--comments")
-
-            result = subprocess.run(command, cwd=navigator_root, check=False)
-            if result.returncode != 0:
-                raise RuntimeError("Upstream update script failed")
-            shutil.copy2(navigator_db, db_path)
-        finally:
-            if backup_path.exists():
-                shutil.copy2(backup_path, navigator_db)
-
-
 def update_workspace(
     db_path: Path | None = None,
     *,
@@ -260,24 +223,24 @@ def update_workspace(
     if not resolved_db.exists():
         initialize_workspace(resolved_db)
 
-    actual_root = navigator_root or guess_navigator_root()
-    if actual_root is None:
-        raise FileNotFoundError(
-            "Could not locate erdos-navigator automatically. Pass --navigator-root explicitly."
-        )
-
     before = snapshot_problem_index(resolved_db)
-    _run_upstream_update(
-        db_path=resolved_db,
-        navigator_root=actual_root,
-        pull=pull,
-        quick=quick,
-        comments_only=comments_only,
-    )
+    with IncrementalUpdater(resolved_db) as updater:
+        incremental_result = updater.run()
     after = snapshot_problem_index(resolved_db)
 
     recorded_at = now_iso()
     changes = diff_snapshots(before, after, recorded_at=recorded_at)
+    changes.extend(
+        ChangeEvent(
+            recorded_at=entry.detected_at,
+            problem_number=entry.problem_number,
+            change_type=entry.change_type,
+            description=entry.description,
+            before={},
+            after={},
+        )
+        for entry in incremental_result.changelog_entries
+    )
     run = UpdateRun(
         recorded_at=recorded_at,
         mode="update",
@@ -303,6 +266,38 @@ def daily_history(
 ) -> list[dict[str, Any]]:
     resolved_db = resolve_db_path(db_path)
     entries = read_history(resolved_db)
+    changelog: list[dict[str, Any]] = []
+    try:
+        with ErdosDB(resolved_db) as db:
+            db.ensure_tracking_schema()
+            changelog = [
+                entry.model_dump()
+                | {"kind": "change", "recorded_at": entry.detected_at}
+                for entry in db.get_recent_changelog(limit=500)
+            ]
+    except sqlite3.DatabaseError:
+        changelog = []
+
+    existing_change_keys = {
+        (
+            entry.get("recorded_at"),
+            entry.get("problem_number"),
+            entry.get("change_type"),
+            entry.get("description"),
+        )
+        for entry in entries
+        if entry.get("kind") == "change"
+    }
+    for entry in changelog:
+        key = (
+            entry.get("recorded_at"),
+            entry.get("problem_number"),
+            entry.get("change_type"),
+            entry.get("description"),
+        )
+        if key not in existing_change_keys:
+            entries.append(entry)
+
     if not entries:
         return []
 
@@ -325,6 +320,40 @@ def problem_record(
 ) -> list[dict[str, Any]]:
     resolved_db = resolve_db_path(db_path)
     entries = read_history(resolved_db)
+    changelog_entries: list[dict[str, Any]] = []
+    try:
+        with ErdosDB(resolved_db) as db:
+            db.ensure_tracking_schema()
+            changelog_entries = [
+                entry.model_dump()
+                | {"kind": "change", "recorded_at": entry.detected_at}
+                for entry in db.get_recent_changelog(
+                    limit=limit, problem_number=str(problem_number)
+                )
+            ]
+    except sqlite3.DatabaseError:
+        changelog_entries = []
+
+    existing_change_keys = {
+        (
+            entry.get("recorded_at"),
+            entry.get("problem_number"),
+            entry.get("change_type"),
+            entry.get("description"),
+        )
+        for entry in entries
+        if entry.get("kind") == "change"
+    }
+    for entry in changelog_entries:
+        key = (
+            entry.get("recorded_at"),
+            entry.get("problem_number"),
+            entry.get("change_type"),
+            entry.get("description"),
+        )
+        if key not in existing_change_keys:
+            entries.append(entry)
+
     filtered = [
         entry
         for entry in entries
