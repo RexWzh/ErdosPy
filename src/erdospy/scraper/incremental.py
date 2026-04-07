@@ -11,7 +11,7 @@ import httpx
 from erdospy.db import ErdosDB
 from erdospy.models import ChangelogEntry
 
-from .forum import ForumThread, parse_forum_threads
+from .forum import ForumThread, parse_forum_thread_detail, parse_forum_threads
 
 BASE_URL = "https://www.erdosproblems.com"
 
@@ -21,6 +21,8 @@ class IncrementalUpdateResult:
     forum_threads_seen: int
     new_threads: int
     updated_threads: int
+    thread_details_fetched: int
+    forum_posts_fetched: int
     changelog_entries: list[ChangelogEntry]
     detected_at: str
 
@@ -49,6 +51,55 @@ class IncrementalUpdater:
         response = self.client.get(f"{BASE_URL}/forum/")
         response.raise_for_status()
         return parse_forum_threads(response.text, now=datetime.now(UTC))
+
+    def fetch_thread_detail(self, thread: ForumThread):
+        response = self.client.get(thread.thread_url)
+        response.raise_for_status()
+        return parse_forum_thread_detail(response.text, thread.thread_url)
+
+    def full_sync(self) -> IncrementalUpdateResult:
+        return self.full_sync_limited(limit=None)
+
+    def full_sync_limited(self, limit: int | None = None) -> IncrementalUpdateResult:
+        detected_at = datetime.now(UTC).replace(microsecond=0).isoformat()
+        threads = self.fetch_forum_threads()
+        if limit is not None:
+            threads = threads[:limit]
+        changelog_entries: list[ChangelogEntry] = []
+        details_fetched = 0
+        posts_fetched = 0
+
+        with ErdosDB(self.db_path) as db:
+            db.ensure_tracking_schema()
+            for thread in threads:
+                db.upsert_forum_thread(thread, fetched_at=detected_at)
+                detail = self.fetch_thread_detail(thread)
+                db.upsert_forum_thread_detail(detail, fetched_at=detected_at)
+                details_fetched += 1
+                posts_fetched += len(detail.posts)
+
+            changelog_entries.append(
+                ChangelogEntry(
+                    change_type="forum_full_sync",
+                    problem_number="",
+                    description=(
+                        f"Full forum sync captured {len(threads)} threads, "
+                        f"{details_fetched} thread pages, and {posts_fetched} posts."
+                    ),
+                    detected_at=detected_at,
+                )
+            )
+            db.insert_changelog_entry(changelog_entries[0])
+
+        return IncrementalUpdateResult(
+            forum_threads_seen=len(threads),
+            new_threads=0,
+            updated_threads=0,
+            thread_details_fetched=details_fetched,
+            forum_posts_fetched=posts_fetched,
+            changelog_entries=changelog_entries,
+            detected_at=detected_at,
+        )
 
     def run(self) -> IncrementalUpdateResult:
         detected_at = datetime.now(UTC).replace(microsecond=0).isoformat()
@@ -101,6 +152,8 @@ class IncrementalUpdater:
             forum_threads_seen=len(threads),
             new_threads=new_threads,
             updated_threads=updated_threads,
+            thread_details_fetched=0,
+            forum_posts_fetched=0,
             changelog_entries=changelog_entries,
             detected_at=detected_at,
         )
