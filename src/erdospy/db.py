@@ -229,7 +229,60 @@ class ErdosDB:
         self._ensure_column("forum_threads", "category", "TEXT DEFAULT 'problem'")
         self._ensure_column("forum_threads", "title", "TEXT")
 
+        self._backfill_forum_threads_metadata()
+
         self.conn.commit()
+
+    def _backfill_forum_threads_metadata(self) -> None:
+        detail_rows = self.conn.execute(
+            """
+            SELECT thread_key, problem_number, category, title, thread_url
+            FROM forum_thread_details
+            """
+        ).fetchall()
+        for row in detail_rows:
+            self.conn.execute(
+                """
+                UPDATE forum_threads
+                SET thread_key = COALESCE(NULLIF(thread_key, ''), ?),
+                    thread_url = COALESCE(NULLIF(thread_url, ''), ?),
+                    category = CASE WHEN category IS NULL OR category = '' THEN ? ELSE category END,
+                    title = COALESCE(NULLIF(title, ''), ?)
+                WHERE thread_key = ? OR problem_id = (SELECT id FROM problems WHERE number = ?)
+                """,
+                (
+                    str(row["thread_key"] or ""),
+                    str(row["thread_url"] or ""),
+                    str(row["category"] or "problem"),
+                    str(row["title"] or ""),
+                    str(row["thread_key"] or ""),
+                    str(row["problem_number"] or ""),
+                ),
+            )
+
+        problem_rows = self.conn.execute(
+            """
+            SELECT ft.problem_id, p.number
+            FROM forum_threads ft
+            JOIN problems p ON p.id = ft.problem_id
+            WHERE (ft.thread_key IS NULL OR ft.thread_key = '')
+               OR (ft.title IS NULL OR ft.title = '')
+            """
+        ).fetchall()
+        for row in problem_rows:
+            number = str(row["number"] or "")
+            if not number:
+                continue
+            self.conn.execute(
+                """
+                UPDATE forum_threads
+                SET thread_key = COALESCE(NULLIF(thread_key, ''), ?),
+                    title = COALESCE(NULLIF(title, ''), ?),
+                    category = CASE WHEN category IS NULL OR category = '' THEN 'problem' ELSE category END
+                WHERE problem_id = ?
+                """,
+                (number, f"Problem #{number}", int(row["problem_id"])),
+            )
 
     def get_problem_id(self, number: str | int) -> int | None:
         cursor = self.conn.execute(
