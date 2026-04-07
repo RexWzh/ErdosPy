@@ -2,6 +2,11 @@
 
 `erdospy` is a Python package and CLI for exploring Paul Erdős problems from a bundled SQLite snapshot.
 
+Documentation:
+
+- Chinese quick start: `docs/quick-start.zh.md`
+- MkDocs config: `mkdocs.yml`
+
 Current Phase 1 scope:
 
 - standard `src` layout package
