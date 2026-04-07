@@ -53,3 +53,22 @@ class Comment(BaseModel):
     date: str
     content: str
     likes: int = 0
+
+
+class ForumThread(BaseModel):
+    """A forum thread summary from the forum listing page."""
+
+    problem_number: str
+    post_count: int
+    last_activity: str
+    last_activity_ts: str
+    last_author: str
+
+
+class ChangelogEntry(BaseModel):
+    """A structured local changelog event."""
+
+    change_type: str
+    problem_number: str
+    description: str
+    detected_at: str
