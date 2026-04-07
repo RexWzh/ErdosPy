@@ -58,11 +58,58 @@ class Comment(BaseModel):
 class ForumThread(BaseModel):
     """A forum thread summary from the forum listing page."""
 
+    thread_key: str = ""
     problem_number: str
     post_count: int
     last_activity: str
     last_activity_ts: str
     last_author: str
+    thread_url: str = ""
+    category: str = "problem"
+    title: str = ""
+
+
+class ForumReactionSummary(BaseModel):
+    """Forum reaction counts for a post or problem thread."""
+
+    reaction_type: str
+    count: int = 0
+    users_title: str = ""
+
+
+class ForumPost(BaseModel):
+    """A parsed forum post within a thread."""
+
+    post_id: str
+    thread_key: str
+    problem_number: str = ""
+    depth: int = 0
+    author_name: str = ""
+    author_username: str = ""
+    created_at: str = ""
+    anchor: str = ""
+    content_markdown: str = ""
+    content_html: str = ""
+    reactions: list[ForumReactionSummary] = Field(default_factory=list)
+
+
+class ForumThreadDetail(BaseModel):
+    """A full forum thread with problem metadata and posts."""
+
+    thread_key: str
+    thread_url: str
+    category: str
+    title: str
+    problem_number: str = ""
+    status_text: str = ""
+    statement: str = ""
+    tags: list[str] = Field(default_factory=list)
+    additional_text: str = ""
+    citation_text: str = ""
+    comment_count: int = 0
+    formalized_url: str = ""
+    problem_reactions: dict[str, list[str]] = Field(default_factory=dict)
+    posts: list[ForumPost] = Field(default_factory=list)
 
 
 class ChangelogEntry(BaseModel):
