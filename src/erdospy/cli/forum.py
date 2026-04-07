@@ -12,6 +12,11 @@ from .common import DBOption, get_console, get_panel, get_table
 forum_app = typer.Typer(help="Extract and inspect full forum data.")
 
 
+def _preview(text: str, limit: int = 120) -> str:
+    text = " ".join(text.split())
+    return text if len(text) <= limit else text[: limit - 3] + "..."
+
+
 @forum_app.command("sync")
 def forum_sync(
     db_path: DBOption = None,
@@ -170,9 +175,7 @@ def forum_thread(
     post_table.add_column("When")
     post_table.add_column("Content")
     for post in posts:
-        preview = " ".join(post["content_markdown"].split())
-        if len(preview) > 120:
-            preview = preview[:117] + "..."
+        preview = _preview(post["content_markdown"], limit=120)
         post_table.add_row(
             f"#{post['post_id']} d={post['depth']}",
             post["author_name"] or post["author_username"] or "-",
@@ -180,3 +183,115 @@ def forum_thread(
             preview or "-",
         )
     console.print(post_table)
+
+
+@forum_app.command("latest")
+def forum_latest(
+    db_path: DBOption = None,
+    limit: Annotated[int, typer.Option("--limit", min=1, max=100)] = 20,
+    category: Annotated[
+        str | None,
+        typer.Option("--category", help="Filter to problem, blog, or general threads."),
+    ] = None,
+) -> None:
+    """Show the latest stored forum activity for analysis and progress tracking."""
+
+    from erdospy.db import ErdosDB
+
+    with ErdosDB(db_path) as db:
+        rows = db.get_latest_forum_threads(limit=limit, category=category)
+
+    console = get_console()
+    if not rows:
+        console.print(
+            "[yellow]No stored forum activity. Run `erdospy forum sync` first.[/yellow]"
+        )
+        return
+
+    table = get_table(title="Latest Forum Activity")
+    table.add_column("Thread", style="bold")
+    table.add_column("Category")
+    table.add_column("Posts", justify="right")
+    table.add_column("Latest")
+    table.add_column("Author")
+    for row in rows:
+        label = row["problem_number"] or row["thread_key"] or row["title"]
+        table.add_row(
+            label,
+            row["category"],
+            str(row["post_count"]),
+            row["last_activity"],
+            row["last_author"] or "-",
+        )
+    console.print(table)
+
+
+@forum_app.command("related")
+def forum_related(
+    problem_number: str,
+    db_path: DBOption = None,
+    limit: Annotated[int, typer.Option("--limit", min=1, max=100)] = 20,
+) -> None:
+    """Show stored forum threads related to a specific problem."""
+
+    from erdospy.db import ErdosDB
+
+    with ErdosDB(db_path) as db:
+        rows = db.get_related_problem_threads(problem_number, limit=limit)
+
+    console = get_console()
+    if not rows:
+        console.print(
+            f"[yellow]No stored discussion found for problem #{problem_number}. Run `erdospy forum sync` first.[/yellow]"
+        )
+        return
+
+    table = get_table(title=f"Related Discussion for Problem #{problem_number}")
+    table.add_column("Thread", style="bold")
+    table.add_column("Comments", justify="right")
+    table.add_column("Fetched at")
+    table.add_column("URL")
+    for row in rows:
+        table.add_row(
+            row["thread_key"],
+            str(row["comment_count"]),
+            row["fetched_at"],
+            row["thread_url"] or "-",
+        )
+    console.print(table)
+
+
+@forum_app.command("search")
+def forum_search(
+    query: str,
+    db_path: DBOption = None,
+    limit: Annotated[int, typer.Option("--limit", min=1, max=100)] = 20,
+) -> None:
+    """Search stored forum posts and discussion titles."""
+
+    from erdospy.db import ErdosDB
+
+    with ErdosDB(db_path) as db:
+        rows = db.search_forum_posts(query, limit=limit)
+
+    console = get_console()
+    if not rows:
+        console.print(
+            f"[yellow]No stored forum matches for {query!r}. Run `erdospy forum sync` first.[/yellow]"
+        )
+        return
+
+    table = get_table(title=f"Forum Search Results for {query!r}")
+    table.add_column("Thread", style="bold")
+    table.add_column("Author")
+    table.add_column("When")
+    table.add_column("Match")
+    for row in rows:
+        label = row["problem_number"] or row["thread_key"]
+        table.add_row(
+            label,
+            row["author_name"] or row["author_username"] or "-",
+            row["created_at"] or "-",
+            _preview(row["content_markdown"], limit=120),
+        )
+    console.print(table)
