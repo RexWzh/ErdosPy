@@ -1,6 +1,6 @@
 # erdospy
 
-`erdospy` is a Python package and CLI for exploring Paul Erdős problems from a bundled SQLite snapshot.
+`erdospy` is a Python package and CLI for analyzing Erdős problems, tracking latest progress, and surfacing relevant discussions directly from the terminal.
 
 Documentation:
 
@@ -14,6 +14,7 @@ Current Phase 1 scope:
 - `typer + rich` CLI for core read workflows
 - pure CLI workspace flow for local build, incremental update, daily progress, and per-problem history
 - full forum extraction via CLI, including thread metadata, problem descriptions, posts, replies, and reaction summaries
+- analysis-oriented CLI access to the latest progress and related discussion history
 
 ## Install
 
@@ -77,6 +78,9 @@ Stored forum stats can be inspected directly from CLI:
 ```bash
 erdospy forum stats --db ./.erdospy/erdos_problems.db
 erdospy forum thread 12 --db ./.erdospy/erdos_problems.db --show-posts 3
+erdospy forum latest --db ./.erdospy/erdos_problems.db --limit 10
+erdospy forum related 12 --db ./.erdospy/erdos_problems.db
+erdospy forum search "Lean proofs" --db ./.erdospy/erdos_problems.db
 ```
 
 ### 5. Check daily progress and specific records
@@ -114,6 +118,11 @@ erdospy record 42 --db ./.erdospy/erdos_problems.db
 
 # inspect full stored forum data for a thread
 erdospy forum thread 12 --db ./.erdospy/erdos_problems.db --show-posts 3
+
+# inspect latest progress and related discussion
+erdospy forum latest --db ./.erdospy/erdos_problems.db --limit 10
+erdospy forum related 12 --db ./.erdospy/erdos_problems.db
+erdospy forum search "formalised" --db ./.erdospy/erdos_problems.db
 ```
 
 ## Forum Capture Status
@@ -158,4 +167,7 @@ erdospy record 42
 erdospy forum sync
 erdospy forum stats
 erdospy forum thread 12
+erdospy forum latest
+erdospy forum related 12
+erdospy forum search "formalised"
 ```

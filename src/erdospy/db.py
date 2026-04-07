@@ -479,6 +479,115 @@ class ErdosDB:
             ],
         }
 
+    def get_latest_forum_threads(
+        self, *, limit: int = 20, category: str | None = None
+    ) -> list[dict[str, Any]]:
+        self.ensure_tracking_schema()
+        forum_thread_columns = self._table_columns("forum_threads")
+        has_problem_number = "problem_number" in forum_thread_columns
+        problem_number_expr = (
+            "problem_number" if has_problem_number else "'' AS problem_number"
+        )
+        if category is None:
+            cursor = self.conn.execute(
+                """
+                SELECT thread_key, {problem_number_expr}, category, title, thread_url,
+                       post_count, last_activity, last_activity_ts, last_author
+                FROM forum_threads
+                ORDER BY last_activity_ts DESC, thread_key ASC
+                LIMIT ?
+                """.format(problem_number_expr=problem_number_expr),
+                (limit,),
+            )
+        else:
+            cursor = self.conn.execute(
+                """
+                SELECT thread_key, {problem_number_expr}, category, title, thread_url,
+                       post_count, last_activity, last_activity_ts, last_author
+                FROM forum_threads
+                WHERE category = ?
+                ORDER BY last_activity_ts DESC, thread_key ASC
+                LIMIT ?
+                """.format(problem_number_expr=problem_number_expr),
+                (category, limit),
+            )
+        return [
+            {
+                "thread_key": str(row[0] or ""),
+                "problem_number": str(row[1] or ""),
+                "category": str(row[2] or ""),
+                "title": str(row[3] or ""),
+                "thread_url": str(row[4] or ""),
+                "post_count": int(row[5] or 0),
+                "last_activity": str(row[6] or ""),
+                "last_activity_ts": str(row[7] or ""),
+                "last_author": str(row[8] or ""),
+            }
+            for row in cursor
+        ]
+
+    def get_related_problem_threads(
+        self, problem_number: str, *, limit: int = 20
+    ) -> list[dict[str, Any]]:
+        self.ensure_tracking_schema()
+        cursor = self.conn.execute(
+            """
+            SELECT thread_key, problem_number, category, title, thread_url,
+                   comment_count, fetched_at
+            FROM forum_thread_details
+            WHERE problem_number = ?
+            ORDER BY comment_count DESC, fetched_at DESC
+            LIMIT ?
+            """,
+            (str(problem_number), limit),
+        )
+        return [
+            {
+                "thread_key": str(row[0] or ""),
+                "problem_number": str(row[1] or ""),
+                "category": str(row[2] or ""),
+                "title": str(row[3] or ""),
+                "thread_url": str(row[4] or ""),
+                "comment_count": int(row[5] or 0),
+                "fetched_at": str(row[6] or ""),
+            }
+            for row in cursor
+        ]
+
+    def search_forum_posts(
+        self, query: str, *, limit: int = 20
+    ) -> list[dict[str, Any]]:
+        self.ensure_tracking_schema()
+        like_query = f"%{query}%"
+        cursor = self.conn.execute(
+            """
+            SELECT fp.thread_key, fp.problem_number, fp.post_id, fp.depth,
+                   fp.author_name, fp.author_username, fp.created_at,
+                   fp.content_markdown, ftd.title, ftd.thread_url
+            FROM forum_posts fp
+            LEFT JOIN forum_thread_details ftd ON fp.thread_key = ftd.thread_key
+            WHERE fp.content_markdown LIKE ? OR ftd.title LIKE ?
+            ORDER BY fp.created_at DESC, fp.post_id DESC
+            LIMIT ?
+            """,
+            (like_query, like_query, limit),
+        )
+        return [
+            {
+                "thread_key": str(row[0] or ""),
+                "problem_number": str(row[1] or ""),
+                "post_id": str(row[2] or ""),
+                "depth": int(row[3] or 0),
+                "author_name": str(row[4] or ""),
+                "author_username": str(row[5] or ""),
+                "created_at": str(row[6] or ""),
+                "content_markdown": str(row[7] or ""),
+                "title": str(row[8] or ""),
+                "thread_url": str(row[9] or ""),
+            }
+            for row in cursor
+        ]
+
     def insert_changelog_entry(self, entry: ChangelogEntry) -> None:
         self.conn.execute(
             """
