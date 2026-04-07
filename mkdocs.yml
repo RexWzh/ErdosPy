@@ -1,0 +1,7 @@
+site_name: erdospy
+site_description: erdospy CLI 中文使用文档
+theme:
+  name: mkdocs
+nav:
+  - 首页: index.md
+  - 中文 Quick Start: quick-start.zh.md
