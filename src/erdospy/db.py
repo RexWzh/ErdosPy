@@ -514,7 +514,11 @@ class ErdosDB:
         return [
             {
                 "thread_key": str(row[0] or ""),
-                "problem_number": str(row[1] or ""),
+                "problem_number": (
+                    str(row[1] or "")
+                    if str(row[1] or "")
+                    else (str(row[0] or "") if str(row[2] or "") == "problem" else "")
+                ),
                 "category": str(row[2] or ""),
                 "title": str(row[3] or ""),
                 "thread_url": str(row[4] or ""),
@@ -587,6 +591,41 @@ class ErdosDB:
             }
             for row in cursor
         ]
+
+    def get_problem_progress_summary(
+        self, problem_number: str
+    ) -> dict[str, Any] | None:
+        problem = self.get_problem(problem_number)
+        if problem is None:
+            return None
+
+        comments = self.get_comments(problem_number)
+        related_threads = self.get_related_problem_threads(problem_number, limit=20)
+        changelog = self.get_recent_changelog(
+            limit=20, problem_number=str(problem_number)
+        )
+        return {
+            "problem": problem.model_dump(),
+            "comments": [comment.model_dump() for comment in comments],
+            "related_threads": related_threads,
+            "recent_changes": [entry.model_dump() for entry in changelog],
+        }
+
+    def get_forum_digest(self, *, limit: int = 20) -> dict[str, Any]:
+        latest_threads = self.get_latest_forum_threads(limit=limit, category="problem")
+        recent_changes = [
+            entry.model_dump() for entry in self.get_recent_changelog(limit=limit)
+        ]
+        active_problems = [
+            row
+            for row in latest_threads
+            if row["problem_number"] or row["thread_key"].isdigit()
+        ]
+        return {
+            "latest_threads": latest_threads,
+            "recent_changes": recent_changes,
+            "active_problem_count": len(active_problems),
+        }
 
     def insert_changelog_entry(self, entry: ChangelogEntry) -> None:
         self.conn.execute(

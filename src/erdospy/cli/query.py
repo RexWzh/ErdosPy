@@ -260,3 +260,136 @@ def list_problems(
         )
         title = "Problem List" if not active else f"Problem List ({active})"
         _render_problem_table(problems, title)
+
+
+@query_app.command()
+def progress(
+    number: str,
+    db_path: DBOption = None,
+    as_json: Annotated[
+        bool, typer.Option("--json", help="Output the full progress summary as JSON.")
+    ] = False,
+) -> None:
+    """Show a problem-centric summary including metadata, comments, forum discussion, and recent changes."""
+
+    from erdospy.db import ErdosDB
+
+    console = get_console()
+    with ErdosDB(db_path) as db:
+        payload = db.get_problem_progress_summary(number)
+
+    if payload is None:
+        console.print(f"[red]Problem #{number} not found.[/red]")
+        raise typer.Exit(code=1)
+
+    if as_json:
+        typer.echo(json.dumps(payload, ensure_ascii=False, indent=2))
+        return
+
+    problem = payload["problem"]
+    meta = get_table(title=f"Problem #{number} Progress")
+    meta.add_column("Field", style="bold cyan")
+    meta.add_column("Value")
+    meta.add_row("Status", problem["status"])
+    meta.add_row("Prize", problem["prize"])
+    meta.add_row("Formalized", "yes" if problem["formalized"] else "no")
+    meta.add_row("Comments in DB", str(problem["comments_count"]))
+    meta.add_row("Tags", ", ".join(problem["tags"]) if problem["tags"] else "-")
+    console.print(meta)
+
+    comments = payload["comments"][:5]
+    if comments:
+        comment_table = get_table(title="Latest Stored Comments")
+        comment_table.add_column("Author")
+        comment_table.add_column("Date")
+        comment_table.add_column("Comment")
+        for comment in comments:
+            comment_table.add_row(
+                comment["author"] or comment["author_username"],
+                comment["date"],
+                statement_preview(comment["content"], limit=100),
+            )
+        console.print(comment_table)
+
+    threads = payload["related_threads"][:5]
+    if threads:
+        thread_table = get_table(title="Related Forum Discussion")
+        thread_table.add_column("Thread", style="bold")
+        thread_table.add_column("Comments", justify="right")
+        thread_table.add_column("Fetched at")
+        for thread in threads:
+            thread_table.add_row(
+                thread["thread_key"],
+                str(thread["comment_count"]),
+                thread["fetched_at"],
+            )
+        console.print(thread_table)
+
+    changes = payload["recent_changes"][:5]
+    if changes:
+        change_table = get_table(title="Recent Progress Signals")
+        change_table.add_column("When")
+        change_table.add_column("Type")
+        change_table.add_column("Description")
+        for change in changes:
+            change_table.add_row(
+                change["detected_at"],
+                change["change_type"],
+                statement_preview(change["description"], limit=100),
+            )
+        console.print(change_table)
+
+
+@query_app.command()
+def digest(
+    db_path: DBOption = None,
+    limit: Annotated[int, typer.Option("--limit", min=1, max=100)] = 10,
+    as_json: Annotated[
+        bool, typer.Option("--json", help="Output the digest as JSON.")
+    ] = False,
+) -> None:
+    """Show a compact digest of the latest active problems and recent progress signals."""
+
+    from erdospy.db import ErdosDB
+
+    with ErdosDB(db_path) as db:
+        payload = db.get_forum_digest(limit=limit)
+
+    if as_json:
+        typer.echo(json.dumps(payload, ensure_ascii=False, indent=2))
+        return
+
+    console = get_console()
+    summary = get_table(title="erdospy Digest")
+    summary.add_column("Metric", style="bold cyan")
+    summary.add_column("Value", justify="right")
+    summary.add_row("Active problem threads", str(payload["active_problem_count"]))
+    summary.add_row("Recent changes", str(len(payload["recent_changes"])))
+    console.print(summary)
+
+    latest = get_table(title="Latest Active Problems")
+    latest.add_column("Problem", style="bold")
+    latest.add_column("Posts", justify="right")
+    latest.add_column("Latest")
+    latest.add_column("Author")
+    for row in payload["latest_threads"][:limit]:
+        label = row["problem_number"] or row["thread_key"]
+        latest.add_row(
+            label,
+            str(row["post_count"]),
+            row["last_activity"],
+            row["last_author"] or "-",
+        )
+    console.print(latest)
+
+    changes = get_table(title="Recent Progress Signals")
+    changes.add_column("When")
+    changes.add_column("Type")
+    changes.add_column("Description")
+    for entry in payload["recent_changes"][:limit]:
+        changes.add_row(
+            entry["detected_at"],
+            entry["change_type"],
+            statement_preview(entry["description"], limit=100),
+        )
+    console.print(changes)

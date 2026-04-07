@@ -123,6 +123,12 @@ erdospy forum thread 12 --db ./.erdospy/erdos_problems.db --show-posts 3
 erdospy forum latest --db ./.erdospy/erdos_problems.db --limit 10
 erdospy forum related 12 --db ./.erdospy/erdos_problems.db
 erdospy forum search "formalised" --db ./.erdospy/erdos_problems.db
+
+# inspect one problem as a whole
+erdospy progress 12 --db ./.erdospy/erdos_problems.db
+
+# get a compact digest of latest movement
+erdospy digest --db ./.erdospy/erdos_problems.db --limit 10
 ```
 
 ## Forum Capture Status
@@ -160,6 +166,8 @@ erdospy get 42 --json
 erdospy get 42 --comments
 erdospy search "Sidon set"
 erdospy list --status open --tag primes --has-prize
+erdospy progress 12
+erdospy digest
 erdospy build
 erdospy update --quick
 erdospy daily
