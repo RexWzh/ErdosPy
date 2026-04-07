@@ -171,7 +171,7 @@ def test_update_command_renders_summary_with_mocked_result(monkeypatch):
         changes = [FakeChange()]
 
     monkeypatch.setattr(
-        "erdospy.cli.app.update_workspace", lambda *args, **kwargs: FakeResult()
+        "erdospy.cli.workspace.update_workspace", lambda *args, **kwargs: FakeResult()
     )
 
     result = runner.invoke(app, ["update", "--db", "/tmp/demo.db", "--quick"])

@@ -20,6 +20,14 @@ dependencies = [
   "beautifulsoup4>=4.12.0",
 ]
 
+[project.optional-dependencies]
+dev = [
+  "build>=1.2.1",
+  "mkdocs>=1.6.0",
+  "pytest>=8.3.0",
+  "twine>=5.1.0",
+]
+
 [project.scripts]
 erdospy = "erdospy.cli.app:main"
 
@@ -31,3 +39,6 @@ packages = ["src/erdospy"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.mkdocs]
+strict = true
