@@ -11,6 +11,7 @@ def build_app() -> typer.Typer:
     )
 
     # Import command modules lazily when building the CLI, keeping the entrypoint thin.
+    from erdospy.cli.forum import forum_app
     from erdospy.cli.query import query_app
     from erdospy.cli.workspace import workspace_app
 
@@ -18,6 +19,7 @@ def build_app() -> typer.Typer:
         app.registered_commands.append(command)
     for command in workspace_app.registered_commands:
         app.registered_commands.append(command)
+    app.add_typer(forum_app, name="forum")
 
     return app
 
