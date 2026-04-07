@@ -3,22 +3,34 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Annotated
 
 import typer
 from rich.console import Console
-from rich.json import JSON
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
 from erdospy.db import ErdosDB
 from erdospy.models import Problem
+from erdospy.workflow import (
+    daily_history,
+    format_daily_heading,
+    format_record_heading,
+    initialize_workspace,
+    problem_record,
+    update_workspace,
+)
 
 app = typer.Typer(
     help="Explore Erdős problems from the terminal.", no_args_is_help=True
 )
 console = Console()
+DBOption = Annotated[
+    Path | None,
+    typer.Option("--db", help="Use a specific SQLite database file."),
+]
 
 
 def _status_style(status: str) -> str:
@@ -103,10 +115,10 @@ def _render_problem_table(problems: list[Problem], title: str) -> None:
 
 
 @app.command()
-def stats() -> None:
+def stats(db_path: DBOption = None) -> None:
     """Show dataset statistics."""
 
-    with ErdosDB() as db:
+    with ErdosDB(db_path) as db:
         data = db.get_statistics()
         summary = Table(title="erdospy Stats")
         summary.add_column("Metric", style="bold cyan")
@@ -144,6 +156,7 @@ def stats() -> None:
 @app.command()
 def get(
     number: str,
+    db_path: DBOption = None,
     as_json: Annotated[bool, typer.Option("--json", help="Output raw JSON")] = False,
     comments: Annotated[
         bool, typer.Option("--comments", help="Include comments in output")
@@ -151,7 +164,7 @@ def get(
 ) -> None:
     """Show a single problem."""
 
-    with ErdosDB() as db:
+    with ErdosDB(db_path) as db:
         problem = db.get_problem(number)
         if not problem:
             console.print(f"[red]Problem #{number} not found.[/red]")
@@ -163,7 +176,7 @@ def get(
                 payload["comments"] = [
                     comment.model_dump() for comment in db.get_comments(number)
                 ]
-            console.print(JSON.from_data(payload))
+            typer.echo(json.dumps(payload, ensure_ascii=False, indent=2))
             return
 
         _render_problem_detail(problem)
@@ -187,12 +200,13 @@ def get(
 @app.command()
 def search(
     query: str,
+    db_path: DBOption = None,
     limit: Annotated[int, typer.Option("--limit", min=1, max=200)] = 20,
     offset: Annotated[int, typer.Option("--offset", min=0)] = 0,
 ) -> None:
     """Full-text search across problem statements."""
 
-    with ErdosDB() as db:
+    with ErdosDB(db_path) as db:
         problems = db.full_text_search(query, limit=limit, offset=offset)
         if not problems:
             console.print(f"[yellow]No matches for {query!r}.[/yellow]")
@@ -202,6 +216,7 @@ def search(
 
 @app.command(name="list")
 def list_problems(
+    db_path: DBOption = None,
     status: Annotated[str | None, typer.Option("--status")] = None,
     tag: Annotated[str | None, typer.Option("--tag")] = None,
     has_prize: Annotated[
@@ -221,7 +236,7 @@ def list_problems(
 ) -> None:
     """List problems using structured filters."""
 
-    with ErdosDB() as db:
+    with ErdosDB(db_path) as db:
         problems = db.search(
             status=status,
             tag=tag,
@@ -257,6 +272,165 @@ def list_problems(
         )
         title = "Problem List" if not active else f"Problem List ({active})"
         _render_problem_table(problems, title)
+
+
+@app.command()
+def build(
+    db_path: DBOption = None,
+    force: Annotated[
+        bool, typer.Option("--force", help="Overwrite the target DB if it exists.")
+    ] = False,
+) -> None:
+    """Create a writable local workspace database from the bundled snapshot."""
+
+    resolved = initialize_workspace(db_path, force=force)
+    console.print(f"[green]Initialized workspace database:[/green] {resolved}")
+    console.print(f"[cyan]History file:[/cyan] {resolved.parent / 'history.jsonl'}")
+
+
+@app.command()
+def update(
+    db_path: DBOption = None,
+    navigator_root: Annotated[
+        Path | None,
+        typer.Option(
+            "--navigator-root", help="Path to the upstream erdos-navigator checkout."
+        ),
+    ] = None,
+    pull: Annotated[
+        bool, typer.Option("--pull", help="Pull the latest YAML repo before updating.")
+    ] = False,
+    quick: Annotated[
+        bool, typer.Option("--quick", help="Skip comment scraping.")
+    ] = False,
+    comments_only: Annotated[
+        bool, typer.Option("--comments-only", help="Refresh comments only.")
+    ] = False,
+    show_changes: Annotated[
+        bool,
+        typer.Option(
+            "--show-changes/--no-show-changes",
+            help="Render detected changes after the update.",
+        ),
+    ] = True,
+) -> None:
+    """Run an incremental update against a writable workspace database."""
+
+    result = update_workspace(
+        db_path,
+        navigator_root=navigator_root,
+        pull=pull,
+        quick=quick,
+        comments_only=comments_only,
+    )
+
+    summary = Table(title="Update Summary")
+    summary.add_column("Metric", style="bold cyan")
+    summary.add_column("Value", justify="right")
+    summary.add_row("Workspace DB", str(result.db_path))
+    summary.add_row("Recorded at", result.run.recorded_at)
+    summary.add_row("Total changes", str(result.run.total_changes))
+    summary.add_row("Status changes", str(result.run.status_changes))
+    summary.add_row("Comment deltas", str(result.run.comment_changes))
+    console.print(summary)
+
+    if show_changes and result.changes:
+        table = Table(title="Detected Changes")
+        table.add_column("Problem", style="bold")
+        table.add_column("Type")
+        table.add_column("Description")
+        for change in result.changes[:20]:
+            table.add_row(change.problem_number, change.change_type, change.description)
+        console.print(table)
+    elif show_changes:
+        console.print("[yellow]No changes detected in this update run.[/yellow]")
+
+
+@app.command()
+def daily(
+    db_path: DBOption = None,
+    date: Annotated[
+        str | None,
+        typer.Option(
+            "--date", help="Show progress for a specific UTC date, e.g. 2026-04-07."
+        ),
+    ] = None,
+) -> None:
+    """Show the recorded daily progress from prior build/update runs."""
+
+    entries = daily_history(db_path, date=date)
+    if not entries:
+        console.print(
+            "[yellow]No daily history recorded yet. Run `erdospy build` or `erdospy update` first.[/yellow]"
+        )
+        return
+
+    effective_date = date or entries[0]["recorded_at"][:10]
+    changes = [entry for entry in entries if entry.get("kind") == "change"]
+    runs = [entry for entry in entries if entry.get("kind") == "run"]
+    typer.echo(format_daily_heading(effective_date))
+
+    summary = Table(title="Daily Progress Summary")
+    summary.add_column("Metric", style="bold cyan")
+    summary.add_column("Value", justify="right")
+    summary.add_row("Runs", str(len(runs)))
+    summary.add_row("Tracked changes", str(len(changes)))
+    summary.add_row(
+        "Changed problems", str(len({entry["problem_number"] for entry in changes}))
+    )
+    console.print(summary)
+
+    if changes:
+        typer.echo("Daily change summary:")
+        for entry in changes[:20]:
+            typer.echo(
+                f"- {entry['recorded_at']} | #{entry['problem_number']} | {entry['change_type']} | {entry['description']}"
+            )
+
+        table = Table(title="Daily Change Log")
+        table.add_column("When")
+        table.add_column("Problem", style="bold")
+        table.add_column("Type")
+        table.add_column("Description")
+        for entry in changes[:20]:
+            table.add_row(
+                entry["recorded_at"],
+                entry["problem_number"],
+                entry["change_type"],
+                entry["description"],
+            )
+        console.print(table)
+
+
+@app.command()
+def record(
+    problem_number: str,
+    db_path: DBOption = None,
+    limit: Annotated[int, typer.Option("--limit", min=1, max=100)] = 10,
+) -> None:
+    """Show the recorded local change history for a specific problem."""
+
+    entries = problem_record(problem_number, db_path, limit=limit)
+    if not entries:
+        console.print(
+            f"[yellow]No recorded history for problem #{problem_number} yet.[/yellow]"
+        )
+        return
+
+    typer.echo(format_record_heading(problem_number))
+    typer.echo("Recorded change summary:")
+    for entry in entries:
+        typer.echo(
+            f"- {entry['recorded_at']} | {entry['change_type']} | {entry['description']}"
+        )
+
+    table = Table(title="Problem Record")
+    table.add_column("When")
+    table.add_column("Type")
+    table.add_column("Description")
+    for entry in entries:
+        table.add_row(entry["recorded_at"], entry["change_type"], entry["description"])
+    console.print(table)
 
 
 def main() -> None:
