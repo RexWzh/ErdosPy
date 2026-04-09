@@ -111,6 +111,9 @@ class IncrementalUpdater:
         with ErdosDB(self.db_path) as db:
             db.ensure_tracking_schema()
             for thread in threads:
+                if not thread.problem_number:
+                    continue
+
                 previous = db.get_forum_thread(thread.problem_number)
                 db.upsert_forum_thread(thread, fetched_at=detected_at)
 
