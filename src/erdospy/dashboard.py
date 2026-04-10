@@ -62,7 +62,37 @@ def _list_items(rows: list[str]) -> str:
 def render_dashboard_html(db_path: Path | None = None) -> str:
     try:
         payload = dashboard_payload(db_path)
-    except FileNotFoundError:
+    except (FileNotFoundError, OSError, ValueError):
+        return """<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>erdospy dashboard</title>
+    <style>
+      body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: #0b1020; color: #edf2ff; }
+      main { max-width: 760px; margin: 0 auto; padding: 48px 20px; }
+      .card { background: #141b34; border: 1px solid rgba(255,255,255,0.12); border-radius: 18px; padding: 24px; }
+      code { font-family: ui-monospace, SFMono-Regular, monospace; }
+      .muted { color: #a9b6d3; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="card">
+        <h1>erdospy dashboard</h1>
+        <p>No workspace database was found.</p>
+        <p class="muted">Run <code>erdospy build</code> to initialize <code>~/.erdospy/erdos_problems.db</code>, then refresh this page.</p>
+      </div>
+    </main>
+  </body>
+</html>
+"""
+    except Exception as exc:
+        import sqlite3
+
+        if not isinstance(exc, sqlite3.DatabaseError):
+            raise
         return """<!doctype html>
 <html lang="en">
   <head>

@@ -71,6 +71,24 @@ def create_sample_db(db_path: Path) -> Path:
                 0,
             ),
         )
+        conn.execute(
+            """
+            INSERT INTO problems (id, number, statement, status, prize, formalized, oeis, lean_url, additional_text, comments_count)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                3,
+                "12",
+                "Problem 12 statement.",
+                "open",
+                "no",
+                0,
+                json.dumps([]),
+                "",
+                "",
+                0,
+            ),
+        )
         conn.execute("INSERT INTO tags (id, name) VALUES (1, 'primes')")
         conn.execute("INSERT INTO problem_tags (problem_id, tag_id) VALUES (1, 1)")
         conn.execute(
