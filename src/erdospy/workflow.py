@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-import shutil
+import os
 import sqlite3
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -12,12 +12,16 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from .db import ErdosDB, default_db_path
+from .db import ErdosDB, initialize_empty_db
 from .scraper.incremental import IncrementalUpdater
 
 
 def default_workspace_db_path() -> Path:
-    return Path.home() / ".erdospy" / "erdos_problems.db"
+    override_home = os.environ.get("ERDOSPY_HOME")
+    workspace_root = (
+        Path(override_home).expanduser() if override_home else Path.home() / ".erdospy"
+    )
+    return workspace_root / "erdos_problems.db"
 
 
 def resolve_db_path(db_path: Path | None = None) -> Path:
@@ -72,7 +76,10 @@ def initialize_workspace(db_path: Path | None = None, force: bool = False) -> Pa
     if resolved.exists() and not force:
         return resolved
 
-    shutil.copy2(default_db_path(), resolved)
+    if resolved.exists() and force:
+        resolved.unlink()
+
+    initialize_empty_db(resolved)
     with ErdosDB(resolved) as db:
         db.ensure_tracking_schema()
 

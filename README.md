@@ -41,6 +41,11 @@ By default this creates:
 ~/.erdospy/snapshot.json
 ```
 
+Path overrides for automation and testing:
+
+- `ERDOSPY_HOME`: override the workspace root directory
+- `ERDOSPY_DB_PATH`: override the exact database file path
+
 ### 2. Query the local workspace snapshot
 
 ```bash
