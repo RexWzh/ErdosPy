@@ -41,6 +41,10 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install .[dev]
 
+      - name: Generate dashboard page
+        run: |
+          python -c "from pathlib import Path; from erdospy.dashboard import write_dashboard_html; write_dashboard_html(Path('site/dashboard/index.html'))"
+
       - name: Deploy docs
         run: |
           mkdocs gh-deploy --force

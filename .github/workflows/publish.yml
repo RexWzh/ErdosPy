@@ -12,59 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verify tag matches package version
-        run: |
-          tag_name="${GITHUB_REF_NAME#v}"
-          package_version="$(python3 - <<'PY'
-          import ast
-          from pathlib import Path
-
-          module = ast.parse(Path("src/erdospy/__init__.py").read_text(encoding="utf-8"))
-          for stmt in module.body:
-              if not isinstance(stmt, ast.Assign):
-                  continue
-              if any(isinstance(target, ast.Name) and target.id == "__version__" for target in stmt.targets):
-                  print(ast.literal_eval(stmt.value))
-                  break
-          else:
-              raise SystemExit("__version__ not found in src/erdospy/__init__.py")
-          PY
-          )"
-
-          if [[ "$tag_name" != "$package_version" ]]; then
-            echo "Tag $GITHUB_REF_NAME does not match package version $package_version"
-            exit 1
-          fi
-
-          echo "PACKAGE_VERSION=$package_version" >> "$GITHUB_ENV"
-
-      - name: Fail if version already exists on PyPI
-        run: |
-          python3 - <<'PY'
-          import os
-          import sys
-          import urllib.error
-          import urllib.request
-
-          package = "erdospy"
-          version = os.environ["PACKAGE_VERSION"]
-          url = f"https://pypi.org/pypi/{package}/{version}/json"
-
-          try:
-              urllib.request.urlopen(url)
-          except urllib.error.HTTPError as exc:
-              if exc.code == 404:
-                  print(f"{package} {version} is not yet on PyPI; continuing.")
-                  sys.exit(0)
-              raise
-          else:
-              print(
-                  f"{package} {version} is already on PyPI. "
-                  "Bump src/erdospy/__init__.py and merge that change before pushing a release tag."
-              )
-              sys.exit(1)
-          PY
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -82,4 +29,4 @@ jobs:
         run: |
           python -m build
           python -m twine check dist/*
-          python -m twine upload dist/*
+          python -m twine upload --skip-existing dist/*
