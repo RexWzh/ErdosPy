@@ -6,6 +6,7 @@ Documentation:
 
 - Chinese quick start: `docs/quick-start.zh.md`
 - MkDocs config: `mkdocs.yml`
+- Reusable workflow skill: `skills/erdospy-workflow/SKILL.md`
 
 Current Phase 1 scope:
 
@@ -96,6 +97,16 @@ erdospy daily --db ~/.erdospy/erdos_problems.db
 erdospy daily --db ~/.erdospy/erdos_problems.db --date 2026-04-07
 erdospy record 42 --db ~/.erdospy/erdos_problems.db
 ```
+
+### 6. Reusable Skill
+
+The reusable workflow description lives in:
+
+```text
+skills/erdospy-workflow/SKILL.md
+```
+
+It documents the intended end-to-end usage pattern without adding extra CLI surface.
 
 ### End-to-end CLI flow
 
