@@ -15,7 +15,6 @@ Current Phase 1 scope:
 - pure CLI workspace flow for local build, incremental update, daily progress, and per-problem history
 - full forum extraction via CLI, including thread metadata, problem descriptions, posts, replies, and reaction summaries
 - analysis-oriented CLI access to the latest progress and related discussion history
-- task-oriented `skills` commands for common Erdős workflows
 - simple `serve` dashboard for local viewing and GitHub Pages publishing
 
 ## Install
@@ -132,10 +131,6 @@ erdospy progress 12 --db ~/.erdospy/erdos_problems.db
 # get a compact digest of latest movement
 erdospy digest --db ~/.erdospy/erdos_problems.db --limit 10
 
-# run task-oriented skills
-erdospy skills refresh --db ~/.erdospy/erdos_problems.db
-erdospy skills investigate 12 --db ~/.erdospy/erdos_problems.db
-
 # serve a local dashboard
 erdospy serve dashboard --db ~/.erdospy/erdos_problems.db --port 8000
 ```
@@ -187,8 +182,5 @@ erdospy forum thread 12
 erdospy forum latest
 erdospy forum related 12
 erdospy forum search "formalised"
-erdospy skills refresh
-erdospy skills investigate 12
-erdospy skills publish-dashboard
 erdospy serve dashboard
 ```

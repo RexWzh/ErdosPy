@@ -43,7 +43,7 @@ jobs:
 
       - name: Generate dashboard page
         run: |
-          python -m erdospy skills publish-dashboard --output site/dashboard/index.html
+          python -c "from pathlib import Path; from erdospy.dashboard import write_dashboard_html; write_dashboard_html(Path('site/dashboard/index.html'))"
 
       - name: Deploy docs
         run: |
