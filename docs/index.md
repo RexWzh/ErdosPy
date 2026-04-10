@@ -9,18 +9,15 @@
 - 原生 forum 增量更新
 - 查看每日进度摘要
 - 查看单个问题的本地变更记录
-- `skills` 风格的任务化入口
 - 简单 dashboard 页面与本地 `serve` 命令
 
 如果你想直接开始用，先看 `中文 Quick Start`。
 
 ## 新入口
 
-常用任务现在可以通过 `skills` 和 `serve` 入口访问：
+常用任务现在可以通过 `serve` 入口访问：
 
 ```bash
-erdospy skills refresh --db ~/.erdospy/erdos_problems.db
-erdospy skills investigate 12 --db ~/.erdospy/erdos_problems.db
 erdospy serve dashboard --db ~/.erdospy/erdos_problems.db --port 8000
 ```
 
