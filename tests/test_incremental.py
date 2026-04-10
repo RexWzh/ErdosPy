@@ -81,6 +81,40 @@ def test_incremental_updater_writes_forum_tables(tmp_path: Path):
     assert changelog[0].change_type == "new_thread"
 
 
+def test_incremental_updater_ignores_general_threads_for_problem_changelog(
+    tmp_path: Path,
+):
+    db_path = tmp_path / "erdos.db"
+    shutil.copy2(default_db_path(), db_path)
+
+    html = """
+    <html><body>
+      <div class="fancy-line"><span>General Threads</span></div>
+      <ul>
+        <li class="thread-item">
+          <a class="thread-title" href="/forum/thread/AI%20Contributions">AI Contributions</a>
+          <span class="badge">(347 posts)</span>
+          <span class="muted">an hour ago by <a class="user-link" href="/forum/user/qrdl">qrdl</a></span>
+        </li>
+      </ul>
+    </body></html>
+    """
+
+    with IncrementalUpdater(db_path, client=FakeClient(html)) as updater:
+        result = updater.run()
+
+    assert result.forum_threads_seen == 1
+    assert result.new_threads == 0
+    assert result.updated_threads == 0
+    assert result.changelog_entries == []
+
+    with ErdosDB(db_path) as db:
+        db.ensure_tracking_schema()
+        changelog = db.get_recent_changelog(limit=10)
+
+    assert changelog == []
+
+
 def test_incremental_full_sync_writes_thread_details_and_posts(tmp_path: Path):
     db_path = tmp_path / "erdos.db"
     shutil.copy2(default_db_path(), db_path)
