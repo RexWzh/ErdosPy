@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>中文 Quick Start - erdospy</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../css/brands.min.css" rel="stylesheet">
+        <link href="../css/solid.min.css" rel="stylesheet">
+        <link href="../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" >
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">erdospy</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href=".." class="nav-link">首页</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="./" class="nav-link active" aria-current="page">中文 Quick Start</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href=".." class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" class="nav-link disabled">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#quick-start" class="nav-link">中文 Quick Start</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#_1" class="nav-link">适用场景</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#1-python" class="nav-link">1. 安装 Python 包</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2" class="nav-link">2. 初始化本地工作库</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3" class="nav-link">3. 查询当前本地数据</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4" class="nav-link">4. 跑一次增量更新</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5" class="nav-link">5. 查看每日进度</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 查看论坛讨论与相关进展</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7" class="nav-link">7. 查看单个问题的记录</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#8" class="nav-link">8. 一套最短日常流程</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#9" class="nav-link">9. 从零完整跑一遍</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#10" class="nav-link">10. 当前实现边界</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="quick-start">中文 Quick Start</h1>
+<p>这份文档只讲当前已经可用、可验证、可直接运行的纯 CLI 工作流。</p>
+<h2 id="_1">适用场景</h2>
+<p>如果你希望用命令行完成下面这套流程：</p>
+<ul>
+<li>初始化一份本地可写数据库</li>
+<li>查询问题与评论</li>
+<li>汇总某一道题的最新进展</li>
+<li>跑一次增量更新</li>
+<li>看当天有哪些变化</li>
+<li>跟踪某个特定问题的记录</li>
+<li>搜索和查看相关讨论</li>
+</ul>
+<p>那就照这份文档直接跑。</p>
+<h2 id="1-python">1. 安装 Python 包</h2>
+<p>进入仓库目录：</p>
+<pre><code class="language-bash">cd /home/zhihong/Playground/core/erdospy
+</code></pre>
+<p>用可编辑模式安装：</p>
+<pre><code class="language-bash">pip install -e .
+</code></pre>
+<p>安装完成后，命令行里会有 <code>erdospy</code> 命令。</p>
+<h2 id="2">2. 初始化本地工作库</h2>
+<p>执行：</p>
+<pre><code class="language-bash">erdospy build
+</code></pre>
+<p>默认会在当前目录生成：</p>
+<pre><code class="language-bash">~/.erdospy/erdos_problems.db
+~/.erdospy/history.jsonl
+~/.erdospy/snapshot.json
+</code></pre>
+<p>这三个文件的作用分别是：</p>
+<ul>
+<li><code>erdos_problems.db</code>：本地可写 SQLite 数据库</li>
+<li><code>history.jsonl</code>：CLI 运行历史和兼容事件流</li>
+<li><code>snapshot.json</code>：本地快照索引</li>
+</ul>
+<p>如果你需要在测试或自动化里改默认路径，可以使用：</p>
+<ul>
+<li><code>ERDOSPY_HOME</code>：覆盖工作区根目录</li>
+<li><code>ERDOSPY_DB_PATH</code>：直接覆盖数据库文件路径</li>
+</ul>
+<p>如果你想强制重新初始化：</p>
+<pre><code class="language-bash">erdospy build --force
+</code></pre>
+<h2 id="3">3. 查询当前本地数据</h2>
+<p>先看总体状态：</p>
+<pre><code class="language-bash">erdospy stats --db ~/.erdospy/erdos_problems.db
+</code></pre>
+<p>看某一道题：</p>
+<pre><code class="language-bash">erdospy get 42 --db ~/.erdospy/erdos_problems.db
+</code></pre>
+<p>连评论一起看：</p>
+<pre><code class="language-bash">erdospy get 42 --db ~/.erdospy/erdos_problems.db --comments
+</code></pre>
+<p>输出 JSON：</p>
+<pre><code class="language-bash">erdospy get 42 --db ~/.erdospy/erdos_problems.db --json
+</code></pre>
+<p>全文搜索：</p>
+<pre><code class="language-bash">erdospy search &quot;Sidon set&quot; --db ~/.erdospy/erdos_problems.db --limit 5
+</code></pre>
+<p>结构化筛选：</p>
+<pre><code class="language-bash">erdospy list --db ~/.erdospy/erdos_problems.db --status open --tag primes --limit 10
+</code></pre>
+<p>看某一道题的综合进展：</p>
+<pre><code class="language-bash">erdospy progress 12 --db ~/.erdospy/erdos_problems.db
+</code></pre>
+<p>看一份简洁 digest：</p>
+<pre><code class="language-bash">erdospy digest --db ~/.erdospy/erdos_problems.db --limit 10
+</code></pre>
+<h2 id="4">4. 跑一次增量更新</h2>
+<p>执行：</p>
+<pre><code class="language-bash">erdospy update --db ~/.erdospy/erdos_problems.db
+</code></pre>
+<p>当前版本这一步已经是原生 CLI 更新链路，不再只是借上游脚本做包装。</p>
+<p>现在它会做的事情是：</p>
+<ul>
+<li>抓取 <code>erdosproblems.com/forum/</code></li>
+<li>解析 forum thread 活跃信息</li>
+<li>写入本地 SQLite 跟踪表</li>
+<li>生成本地 changelog</li>
+<li>让 <code>daily</code> 和 <code>record</code> 命令可以直接读取这些变化</li>
+</ul>
+<p>更新完成后，CLI 会输出一张 <code>Update Summary</code> 表，以及变化摘要。</p>
+<h2 id="5">5. 查看每日进度</h2>
+<p>看最近一天的记录：</p>
+<pre><code class="language-bash">erdospy daily --db ~/.erdospy/erdos_problems.db
+</code></pre>
+<p>看指定日期：</p>
+<pre><code class="language-bash">erdospy daily --db ~/.erdospy/erdos_problems.db --date 2026-04-07
+</code></pre>
+<p>当前 <code>daily</code> 会展示：</p>
+<ul>
+<li>当天运行次数</li>
+<li>变化总数</li>
+<li>涉及的问题数</li>
+<li>纯文本 change summary</li>
+<li>rich 表格形式的 change log</li>
+</ul>
+<h2 id="6">6. 查看论坛讨论与相关进展</h2>
+<p>先做一版 forum 全量抓取：</p>
+<pre><code class="language-bash">erdospy forum sync --db ~/.erdospy/erdos_problems.db --limit 20 --show-top 5
+</code></pre>
+<p>看最新讨论：</p>
+<pre><code class="language-bash">erdospy forum latest --db ~/.erdospy/erdos_problems.db --limit 10
+</code></pre>
+<p>看某题相关讨论：</p>
+<pre><code class="language-bash">erdospy forum related 12 --db ~/.erdospy/erdos_problems.db
+</code></pre>
+<p>搜索讨论内容：</p>
+<pre><code class="language-bash">erdospy forum search &quot;formalised&quot; --db ~/.erdospy/erdos_problems.db --limit 10
+</code></pre>
+<h2 id="7">7. 查看单个问题的记录</h2>
+<p>例如查看 <code>749</code>：</p>
+<pre><code class="language-bash">erdospy record 749 --db ~/.erdospy/erdos_problems.db
+</code></pre>
+<p>例如查看 <code>42</code>：</p>
+<pre><code class="language-bash">erdospy record 42 --db ~/.erdospy/erdos_problems.db
+</code></pre>
+<p>当前 <code>record</code> 会展示该问题在本地变更日志里的记录。</p>
+<h2 id="8">8. 一套最短日常流程</h2>
+<p>每天如果只想快速刷新和查看变化，直接跑：</p>
+<pre><code class="language-bash">cd /home/zhihong/Playground/core/erdospy
+
+erdospy update --db ~/.erdospy/erdos_problems.db
+erdospy daily --db ~/.erdospy/erdos_problems.db
+erdospy progress 12 --db ~/.erdospy/erdos_problems.db
+erdospy record 749 --db ~/.erdospy/erdos_problems.db
+</code></pre>
+<h2 id="9">9. 从零完整跑一遍</h2>
+<p>如果你要从头开始完整演示一次：</p>
+<pre><code class="language-bash">cd /home/zhihong/Playground/core/erdospy
+pip install -e .
+
+erdospy build --force
+erdospy stats --db ~/.erdospy/erdos_problems.db
+erdospy get 42 --db ~/.erdospy/erdos_problems.db --comments
+erdospy forum sync --db ~/.erdospy/erdos_problems.db --limit 20 --show-top 5
+erdospy update --db ~/.erdospy/erdos_problems.db
+erdospy progress 12 --db ~/.erdospy/erdos_problems.db
+erdospy digest --db ~/.erdospy/erdos_problems.db --limit 10
+erdospy daily --db ~/.erdospy/erdos_problems.db
+erdospy record 749 --db ~/.erdospy/erdos_problems.db
+</code></pre>
+<h2 id="10">10. 当前实现边界</h2>
+<p>当前已经完成：</p>
+<ul>
+<li>Python 包安装</li>
+<li>CLI 查询能力</li>
+<li>问题级 progress 汇总</li>
+<li>digest 摘要</li>
+<li>本地工作库初始化</li>
+<li>forum 原生增量更新</li>
+<li>forum 全量抓取</li>
+<li>讨论搜索与相关讨论查看</li>
+<li>daily 进度查看</li>
+<li>单题 record 查看</li>
+</ul>
+<p>当前还没完成：</p>
+<ul>
+<li><code>erdospy changelog</code> 独立命令</li>
+<li>对 problem page 本身的更深层增量抓取</li>
+<li>status / comments / reactions 的完整原生 diff</li>
+</ul>
+<p>所以现在最适合把它当作：</p>
+<ul>
+<li>一个本地 CLI 工作台</li>
+<li>一个 Erdős problems 分析工具</li>
+<li>一个 forum activity tracker</li>
+<li>一个日常更新和单题追踪工具</li>
+<li>一个命令行讨论检索与问题进展查看工具</li>
+</ul>
+<p>而不是最终完整版本。</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js"></script>
+        <script src="../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
