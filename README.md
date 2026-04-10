@@ -37,18 +37,18 @@ erdospy build
 By default this creates:
 
 ```bash
-./.erdospy/erdos_problems.db
-./.erdospy/history.jsonl
-./.erdospy/snapshot.json
+~/.erdospy/erdos_problems.db
+~/.erdospy/history.jsonl
+~/.erdospy/snapshot.json
 ```
 
 ### 2. Query the local workspace snapshot
 
 ```bash
-erdospy stats --db ./.erdospy/erdos_problems.db
-erdospy get 42 --db ./.erdospy/erdos_problems.db --comments
-erdospy search "Sidon set" --db ./.erdospy/erdos_problems.db --limit 5
-erdospy list --db ./.erdospy/erdos_problems.db --status open --tag primes --limit 10
+erdospy stats --db ~/.erdospy/erdos_problems.db
+erdospy get 42 --db ~/.erdospy/erdos_problems.db --comments
+erdospy search "Sidon set" --db ~/.erdospy/erdos_problems.db --limit 5
+erdospy list --db ~/.erdospy/erdos_problems.db --status open --tag primes --limit 10
 ```
 
 ### 3. Run an incremental refresh
@@ -56,9 +56,9 @@ erdospy list --db ./.erdospy/erdos_problems.db --status open --tag primes --limi
 `erdospy update` updates the local workspace changelog from the tracked forum index.
 
 ```bash
-erdospy update --db ./.erdospy/erdos_problems.db --quick
-erdospy update --db ./.erdospy/erdos_problems.db --pull
-erdospy update --db ./.erdospy/erdos_problems.db --comments-only
+erdospy update --db ~/.erdospy/erdos_problems.db --quick
+erdospy update --db ~/.erdospy/erdos_problems.db --pull
+erdospy update --db ~/.erdospy/erdos_problems.db --comments-only
 ```
 
 ### 4. Run a full forum extraction
@@ -66,31 +66,31 @@ erdospy update --db ./.erdospy/erdos_problems.db --comments-only
 To capture full forum structure, including thread pages, posts, replies, and reaction summaries:
 
 ```bash
-erdospy forum sync --db ./.erdospy/erdos_problems.db
+erdospy forum sync --db ~/.erdospy/erdos_problems.db
 ```
 
 For a partial full sync while iterating on the scraper:
 
 ```bash
-erdospy forum sync --db ./.erdospy/erdos_problems.db --limit 20 --show-top 5
+erdospy forum sync --db ~/.erdospy/erdos_problems.db --limit 20 --show-top 5
 ```
 
 Stored forum stats can be inspected directly from CLI:
 
 ```bash
-erdospy forum stats --db ./.erdospy/erdos_problems.db
-erdospy forum thread 12 --db ./.erdospy/erdos_problems.db --show-posts 3
-erdospy forum latest --db ./.erdospy/erdos_problems.db --limit 10
-erdospy forum related 12 --db ./.erdospy/erdos_problems.db
-erdospy forum search "Lean proofs" --db ./.erdospy/erdos_problems.db
+erdospy forum stats --db ~/.erdospy/erdos_problems.db
+erdospy forum thread 12 --db ~/.erdospy/erdos_problems.db --show-posts 3
+erdospy forum latest --db ~/.erdospy/erdos_problems.db --limit 10
+erdospy forum related 12 --db ~/.erdospy/erdos_problems.db
+erdospy forum search "Lean proofs" --db ~/.erdospy/erdos_problems.db
 ```
 
 ### 5. Check daily progress and specific records
 
 ```bash
-erdospy daily --db ./.erdospy/erdos_problems.db
-erdospy daily --db ./.erdospy/erdos_problems.db --date 2026-04-07
-erdospy record 42 --db ./.erdospy/erdos_problems.db
+erdospy daily --db ~/.erdospy/erdos_problems.db
+erdospy daily --db ~/.erdospy/erdos_problems.db --date 2026-04-07
+erdospy record 42 --db ~/.erdospy/erdos_problems.db
 ```
 
 ### End-to-end CLI flow
@@ -103,41 +103,41 @@ pip install -e .
 erdospy build
 
 # inspect local state
-erdospy stats --db ./.erdospy/erdos_problems.db
-erdospy get 42 --db ./.erdospy/erdos_problems.db --comments
+erdospy stats --db ~/.erdospy/erdos_problems.db
+erdospy get 42 --db ~/.erdospy/erdos_problems.db --comments
 
 # capture forum data once in full
-erdospy forum sync --db ./.erdospy/erdos_problems.db
+erdospy forum sync --db ~/.erdospy/erdos_problems.db
 
 # then run daily incremental refreshes
-erdospy update --db ./.erdospy/erdos_problems.db
+erdospy update --db ~/.erdospy/erdos_problems.db
 
 # inspect what changed today
-erdospy daily --db ./.erdospy/erdos_problems.db
+erdospy daily --db ~/.erdospy/erdos_problems.db
 
 # drill into one problem's local history
-erdospy record 42 --db ./.erdospy/erdos_problems.db
+erdospy record 42 --db ~/.erdospy/erdos_problems.db
 
 # inspect full stored forum data for a thread
-erdospy forum thread 12 --db ./.erdospy/erdos_problems.db --show-posts 3
+erdospy forum thread 12 --db ~/.erdospy/erdos_problems.db --show-posts 3
 
 # inspect latest progress and related discussion
-erdospy forum latest --db ./.erdospy/erdos_problems.db --limit 10
-erdospy forum related 12 --db ./.erdospy/erdos_problems.db
-erdospy forum search "formalised" --db ./.erdospy/erdos_problems.db
+erdospy forum latest --db ~/.erdospy/erdos_problems.db --limit 10
+erdospy forum related 12 --db ~/.erdospy/erdos_problems.db
+erdospy forum search "formalised" --db ~/.erdospy/erdos_problems.db
 
 # inspect one problem as a whole
-erdospy progress 12 --db ./.erdospy/erdos_problems.db
+erdospy progress 12 --db ~/.erdospy/erdos_problems.db
 
 # get a compact digest of latest movement
-erdospy digest --db ./.erdospy/erdos_problems.db --limit 10
+erdospy digest --db ~/.erdospy/erdos_problems.db --limit 10
 
 # run task-oriented skills
-erdospy skills refresh --db ./.erdospy/erdos_problems.db
-erdospy skills investigate 12 --db ./.erdospy/erdos_problems.db
+erdospy skills refresh --db ~/.erdospy/erdos_problems.db
+erdospy skills investigate 12 --db ~/.erdospy/erdos_problems.db
 
 # serve a local dashboard
-erdospy serve dashboard --db ./.erdospy/erdos_problems.db --port 8000
+erdospy serve dashboard --db ~/.erdospy/erdos_problems.db --port 8000
 ```
 
 ## Forum Capture Status

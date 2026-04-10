@@ -19,9 +19,9 @@
 常用任务现在可以通过 `skills` 和 `serve` 入口访问：
 
 ```bash
-erdospy skills refresh --db ./.erdospy/erdos_problems.db
-erdospy skills investigate 12 --db ./.erdospy/erdos_problems.db
-erdospy serve dashboard --db ./.erdospy/erdos_problems.db --port 8000
+erdospy skills refresh --db ~/.erdospy/erdos_problems.db
+erdospy skills investigate 12 --db ~/.erdospy/erdos_problems.db
+erdospy serve dashboard --db ~/.erdospy/erdos_problems.db --port 8000
 ```
 
 GitHub Pages 发布时也会自动生成一个静态 dashboard 页面：`site/dashboard/index.html`。

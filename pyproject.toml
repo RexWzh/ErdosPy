@@ -34,9 +34,6 @@ erdospy = "erdospy.cli.app:main"
 [tool.hatch.build.targets.wheel]
 packages = ["src/erdospy"]
 
-[tool.hatch.build.targets.wheel.force-include]
-"data/erdos_problems.db" = "erdospy/data/erdos_problems.db"
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 

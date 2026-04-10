@@ -17,7 +17,7 @@ from .scraper.incremental import IncrementalUpdater
 
 
 def default_workspace_db_path() -> Path:
-    return Path.cwd() / ".erdospy" / "erdos_problems.db"
+    return Path.home() / ".erdospy" / "erdos_problems.db"
 
 
 def resolve_db_path(db_path: Path | None = None) -> Path:
