@@ -54,6 +54,11 @@ erdospy build
 - `history.jsonl`：CLI 运行历史和兼容事件流
 - `snapshot.json`：本地快照索引
 
+如果你需要在测试或自动化里改默认路径，可以使用：
+
+- `ERDOSPY_HOME`：覆盖工作区根目录
+- `ERDOSPY_DB_PATH`：直接覆盖数据库文件路径
+
 如果你想强制重新初始化：
 
 ```bash

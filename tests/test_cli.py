@@ -12,7 +12,7 @@ from erdospy.dashboard import write_dashboard_html
 runner = CliRunner()
 
 
-def test_stats_command_renders_key_sections():
+def test_stats_command_renders_key_sections(sample_db_env):
     result = runner.invoke(app, ["stats"])
 
     assert result.exit_code == 0
@@ -22,7 +22,7 @@ def test_stats_command_renders_key_sections():
     assert "Top Tags" in result.stdout
 
 
-def test_get_command_json_output_contains_expected_fields():
+def test_get_command_json_output_contains_expected_fields(sample_db_env):
     result = runner.invoke(app, ["get", "1", "--json"])
 
     assert result.exit_code == 0
@@ -32,7 +32,7 @@ def test_get_command_json_output_contains_expected_fields():
     assert isinstance(payload["tags"], list)
 
 
-def test_get_command_with_comments_shows_comments_table():
+def test_get_command_with_comments_shows_comments_table(sample_db_env):
     result = runner.invoke(app, ["get", "1", "--comments"])
 
     assert result.exit_code == 0
@@ -40,7 +40,7 @@ def test_get_command_with_comments_shows_comments_table():
     assert "Comments for #1" in result.stdout
 
 
-def test_search_command_shows_matching_results():
+def test_search_command_shows_matching_results(sample_db_env):
     result = runner.invoke(app, ["search", "Sidon", "--limit", "3"])
 
     assert result.exit_code == 0
@@ -48,7 +48,7 @@ def test_search_command_shows_matching_results():
     assert "30" in result.stdout or "39" in result.stdout or "42" in result.stdout
 
 
-def test_list_command_applies_filters():
+def test_list_command_applies_filters(sample_db_env):
     result = runner.invoke(
         app, ["list", "--status", "open", "--has-prize", "--limit", "5"]
     )
@@ -58,15 +58,17 @@ def test_list_command_applies_filters():
     assert "status=open" in result.stdout
 
 
-def test_missing_problem_returns_nonzero_exit():
+def test_missing_problem_returns_nonzero_exit(sample_db_env):
     result = runner.invoke(app, ["get", "999999"])
 
     assert result.exit_code == 1
     assert "not found" in result.stdout.lower()
 
 
-def test_build_command_creates_workspace_database(tmp_path: Path):
+def test_build_command_creates_workspace_database(tmp_path: Path, monkeypatch):
     db_path = tmp_path / "workspace" / "erdos.db"
+
+    monkeypatch.setattr("erdospy.workflow.default_workspace_db_path", lambda: db_path)
 
     result = runner.invoke(app, ["build", "--db", str(db_path)])
 
@@ -183,15 +185,27 @@ def test_update_command_renders_summary_with_mocked_result(monkeypatch):
     assert "Problem #42 changed status" in result.stdout
 
 
-def test_write_dashboard_html_generates_expected_sections(tmp_path: Path):
+def test_write_dashboard_html_generates_expected_sections(
+    tmp_path: Path, sample_db: Path
+):
     output = tmp_path / "site" / "dashboard" / "index.html"
 
-    write_dashboard_html(output)
+    write_dashboard_html(output, db_path=sample_db)
 
     assert output.exists()
     text = output.read_text(encoding="utf-8")
     assert "Erdos problem dashboard" in text
     assert "Latest progress signals" in text
+
+
+def test_write_dashboard_html_renders_empty_state_without_db(tmp_path: Path):
+    output = tmp_path / "site" / "dashboard" / "index.html"
+
+    write_dashboard_html(output, db_path=tmp_path / "missing.db")
+
+    assert output.exists()
+    text = output.read_text(encoding="utf-8")
+    assert "No workspace database was found." in text
 
 
 def test_serve_dashboard_help_lists_command():

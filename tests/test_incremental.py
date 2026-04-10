@@ -3,7 +3,7 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
-from erdospy.db import ErdosDB, default_db_path
+from erdospy.db import ErdosDB
 from erdospy.scraper.incremental import IncrementalUpdater
 
 
@@ -29,9 +29,9 @@ class FakeClient:
         return None
 
 
-def test_incremental_updater_writes_forum_tables(tmp_path: Path):
+def test_incremental_updater_writes_forum_tables(tmp_path: Path, sample_db: Path):
     db_path = tmp_path / "erdos.db"
-    shutil.copy2(default_db_path(), db_path)
+    shutil.copy2(sample_db, db_path)
 
     html = """
     <html><body>
@@ -83,9 +83,10 @@ def test_incremental_updater_writes_forum_tables(tmp_path: Path):
 
 def test_incremental_updater_ignores_general_threads_for_problem_changelog(
     tmp_path: Path,
+    sample_db: Path,
 ):
     db_path = tmp_path / "erdos.db"
-    shutil.copy2(default_db_path(), db_path)
+    shutil.copy2(sample_db, db_path)
 
     html = """
     <html><body>
@@ -115,9 +116,11 @@ def test_incremental_updater_ignores_general_threads_for_problem_changelog(
     assert changelog == []
 
 
-def test_incremental_full_sync_writes_thread_details_and_posts(tmp_path: Path):
+def test_incremental_full_sync_writes_thread_details_and_posts(
+    tmp_path: Path, sample_db: Path
+):
     db_path = tmp_path / "erdos.db"
-    shutil.copy2(default_db_path(), db_path)
+    shutil.copy2(sample_db, db_path)
 
     listing_html = """
     <html><body>

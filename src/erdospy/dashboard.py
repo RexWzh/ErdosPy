@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .db import ErdosDB, default_db_path
+from .db import ErdosDB
 from .workflow import daily_history, resolve_db_path
 
 
@@ -18,7 +18,7 @@ def resolve_dashboard_db_path(db_path: Path | None = None) -> Path:
     workspace_db = resolve_db_path(None)
     if workspace_db.exists():
         return workspace_db
-    return default_db_path()
+    raise FileNotFoundError("No workspace database found for dashboard rendering.")
 
 
 def dashboard_payload(db_path: Path | None = None) -> dict[str, Any]:
@@ -60,7 +60,35 @@ def _list_items(rows: list[str]) -> str:
 
 
 def render_dashboard_html(db_path: Path | None = None) -> str:
-    payload = dashboard_payload(db_path)
+    try:
+        payload = dashboard_payload(db_path)
+    except FileNotFoundError:
+        return """<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>erdospy dashboard</title>
+    <style>
+      body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: #0b1020; color: #edf2ff; }
+      main { max-width: 760px; margin: 0 auto; padding: 48px 20px; }
+      .card { background: #141b34; border: 1px solid rgba(255,255,255,0.12); border-radius: 18px; padding: 24px; }
+      code { font-family: ui-monospace, SFMono-Regular, monospace; }
+      .muted { color: #a9b6d3; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="card">
+        <h1>erdospy dashboard</h1>
+        <p>No workspace database was found.</p>
+        <p class="muted">Run <code>erdospy build</code> to initialize <code>~/.erdospy/erdos_problems.db</code>, then refresh this page.</p>
+      </div>
+    </main>
+  </body>
+</html>
+"""
+
     stats = payload["stats"]
     forum = payload["forum"]
     digest = payload["digest"]
@@ -152,17 +180,17 @@ def render_dashboard_html(db_path: Path | None = None) -> str:
       <section class="hero">
         <div class="eyebrow">erdospy serve</div>
         <h1>Erdos problem dashboard</h1>
-        <div class="muted">Local workspace overview for <code>{html.escape(payload['db_path'])}</code></div>
-        <div class="muted">Latest tracked date: {html.escape(payload['latest_date'] or 'n/a')}</div>
+        <div class="muted">Local workspace overview for <code>{html.escape(payload["db_path"])}</code></div>
+        <div class="muted">Latest tracked date: {html.escape(payload["latest_date"] or "n/a")}</div>
       </section>
 
       <section class="grid metrics">
-        {_metric_card('Problems', stats['total'])}
-        {_metric_card('Formalized', stats['formalized'])}
-        {_metric_card('Contributors', stats['total_contributors'])}
-        {_metric_card('Comments', stats['total_comments'])}
-        {_metric_card('Forum threads', forum['problem_threads'])}
-        {_metric_card('Forum posts', forum['forum_posts'])}
+        {_metric_card("Problems", stats["total"])}
+        {_metric_card("Formalized", stats["formalized"])}
+        {_metric_card("Contributors", stats["total_contributors"])}
+        {_metric_card("Comments", stats["total_comments"])}
+        {_metric_card("Forum threads", forum["problem_threads"])}
+        {_metric_card("Forum posts", forum["forum_posts"])}
       </section>
 
       <section class="grid columns">
@@ -171,7 +199,7 @@ def render_dashboard_html(db_path: Path | None = None) -> str:
           <table>
             <thead><tr><th>Status</th><th>Count</th></tr></thead>
             <tbody>
-              {''.join(f"<tr><td>{html.escape(name)}</td><td>{count}</td></tr>" for name, count in status_rows)}
+              {"".join(f"<tr><td>{html.escape(name)}</td><td>{count}</td></tr>" for name, count in status_rows)}
             </tbody>
           </table>
         </div>
@@ -181,7 +209,7 @@ def render_dashboard_html(db_path: Path | None = None) -> str:
           <table>
             <thead><tr><th>Problem</th><th>Comments</th><th>Title</th></tr></thead>
             <tbody>
-              {''.join(f"<tr><td>#{html.escape(item['problem_number'])}</td><td>{item['comment_count']}</td><td>{html.escape(item['title'] or '-')}</td></tr>" for item in thread_rows)}
+              {"".join(f"<tr><td>#{html.escape(item['problem_number'])}</td><td>{item['comment_count']}</td><td>{html.escape(item['title'] or '-')}</td></tr>" for item in thread_rows)}
             </tbody>
           </table>
         </div>
