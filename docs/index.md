@@ -13,6 +13,8 @@
 
 如果你想直接开始用，先看 `中文 Quick Start`。
 
+可复用的工作流说明放在：`skills/erdospy-workflow/SKILL.md`。
+
 ## 新入口
 
 常用任务现在可以通过 `serve` 入口访问：
