@@ -1,4 +1,4 @@
-name: Python Package
+name: CI
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
       - master
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
 
     steps:
@@ -28,8 +28,3 @@ jobs:
       - name: Run tests
         run: |
           python -m pytest -q
-
-      - name: Build package
-        run: |
-          python -m build
-          python -m twine check dist/*

@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
-from importlib.resources import as_file, files
 from pathlib import Path
 from typing import Any
 
@@ -18,22 +18,97 @@ from .models import (
 
 
 def default_db_path() -> Path:
-    """Resolve the bundled database path for installed and editable modes."""
+    """Resolve the default user workspace database path."""
 
+    override_db = os.environ.get("ERDOSPY_DB_PATH")
+    path = (
+        Path(override_db).expanduser()
+        if override_db
+        else Path.home() / ".erdospy" / "erdos_problems.db"
+    )
+    if path.exists():
+        return path
+    raise FileNotFoundError(
+        f"No erdospy workspace database found at {path}. Run `erdospy build` first."
+    )
+
+
+def initialize_empty_db(db_path: Path) -> None:
+    """Create a minimal writable erdospy database without bundled snapshot data."""
+
+    conn = sqlite3.connect(db_path)
     try:
-        data_path = files("erdospy") / "data" / "erdos_problems.db"
-        with as_file(data_path) as resolved:
-            resolved_path = Path(resolved)
-            if resolved_path.exists():
-                return resolved_path
-    except (FileNotFoundError, ModuleNotFoundError):
-        pass
+        conn.executescript(
+            """
+            CREATE TABLE IF NOT EXISTS problems (
+                id INTEGER PRIMARY KEY,
+                number TEXT UNIQUE NOT NULL,
+                statement TEXT DEFAULT '',
+                status TEXT DEFAULT 'open',
+                prize TEXT DEFAULT 'no',
+                formalized INTEGER DEFAULT 0,
+                oeis TEXT DEFAULT '[]',
+                lean_url TEXT DEFAULT '',
+                additional_text TEXT DEFAULT '',
+                comments_count INTEGER DEFAULT 0
+            );
 
-    project_root = Path(__file__).resolve().parents[2]
-    fallback = project_root / "data" / "erdos_problems.db"
-    if fallback.exists():
-        return fallback
-    raise FileNotFoundError("Could not locate erdospy database snapshot")
+            CREATE TABLE IF NOT EXISTS tags (
+                id INTEGER PRIMARY KEY,
+                name TEXT UNIQUE NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS problem_tags (
+                problem_id INTEGER NOT NULL,
+                tag_id INTEGER NOT NULL,
+                UNIQUE(problem_id, tag_id)
+            );
+
+            CREATE TABLE IF NOT EXISTS contributors (
+                id INTEGER PRIMARY KEY,
+                problem_id INTEGER NOT NULL,
+                name TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS problem_references (
+                id INTEGER PRIMARY KEY,
+                problem_id INTEGER NOT NULL,
+                reference_key TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS related_problems (
+                id INTEGER PRIMARY KEY,
+                problem_id INTEGER NOT NULL,
+                related_number TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS problem_reactions (
+                id INTEGER PRIMARY KEY,
+                problem_id INTEGER NOT NULL,
+                reaction_type TEXT NOT NULL,
+                username TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS comments (
+                id INTEGER PRIMARY KEY,
+                problem_id INTEGER NOT NULL,
+                author TEXT DEFAULT '',
+                author_username TEXT DEFAULT '',
+                date TEXT DEFAULT '',
+                content TEXT DEFAULT '',
+                likes INTEGER DEFAULT 0
+            );
+
+            CREATE VIRTUAL TABLE IF NOT EXISTS problems_fts USING fts5(
+                statement,
+                content='problems',
+                content_rowid='id'
+            );
+            """
+        )
+        conn.commit()
+    finally:
+        conn.close()
 
 
 class ErdosDB:
