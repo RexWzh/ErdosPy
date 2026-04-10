@@ -180,3 +180,29 @@ def test_update_command_renders_summary_with_mocked_result(monkeypatch):
     assert "Update Summary" in result.stdout
     assert "Detected Changes" in result.stdout
     assert "Problem #42 changed status" in result.stdout
+
+
+def test_skills_publish_dashboard_writes_html(tmp_path: Path):
+    output = tmp_path / "site" / "dashboard" / "index.html"
+
+    result = runner.invoke(app, ["skills", "publish-dashboard", "--output", str(output)])
+
+    assert result.exit_code == 0
+    assert output.exists()
+    text = output.read_text(encoding="utf-8")
+    assert "Erdos problem dashboard" in text
+    assert "Latest progress signals" in text
+
+
+def test_skills_investigate_shows_problem_progress():
+    result = runner.invoke(app, ["skills", "investigate", "1", "--show-posts", "0"])
+
+    assert result.exit_code == 0
+    assert "Problem #1 Progress" in result.stdout
+
+
+def test_serve_dashboard_help_lists_command():
+    result = runner.invoke(app, ["serve", "dashboard", "--help"])
+
+    assert result.exit_code == 0
+    assert "Serve a simple local dashboard" in result.stdout
