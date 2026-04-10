@@ -43,9 +43,9 @@ erdospy build
 默认会在当前目录生成：
 
 ```bash
-./.erdospy/erdos_problems.db
-./.erdospy/history.jsonl
-./.erdospy/snapshot.json
+~/.erdospy/erdos_problems.db
+~/.erdospy/history.jsonl
+~/.erdospy/snapshot.json
 ```
 
 这三个文件的作用分别是：

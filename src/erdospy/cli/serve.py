@@ -21,8 +21,10 @@ def serve_dashboard(
     port: Annotated[int, typer.Option("--port", min=1, max=65535)] = 8000,
     output_dir: Annotated[
         Path,
-        typer.Option("--output-dir", help="Directory used to stage the served dashboard."),
-    ] = Path(".erdospy/site"),
+        typer.Option(
+            "--output-dir", help="Directory used to stage the served dashboard."
+        ),
+    ] = Path("~/.erdospy/site"),
 ) -> None:
     """Generate and serve a static dashboard with core stats and latest changes."""
 
