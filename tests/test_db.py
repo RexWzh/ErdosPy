@@ -4,7 +4,7 @@ from erdospy.db import ErdosDB
 def test_statistics_have_expected_shape(sample_db):
     with ErdosDB(sample_db) as db:
         stats = db.get_statistics()
-    assert stats["total"] == 2
+    assert stats["total"] == 3
     assert "open" in stats["by_status"]
 
 
