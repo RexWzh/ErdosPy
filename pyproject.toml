@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "erdospy"
-version = "0.1.0"
+version = "0.1.1"
 description = "CLI and Python toolkit for exploring Erdős problems"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.9"
 license = { text = "MIT" }
 authors = [
-  { name = "OpenCode" },
+  { name = "rexwzh" },
 ]
 dependencies = [
   "typer>=0.16.0",

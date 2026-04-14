@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from urllib.parse import urljoin
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from bs4 import BeautifulSoup
 
@@ -31,9 +31,9 @@ def parse_relative_time(text: str, now: datetime | None = None) -> datetime:
     if not raw:
         raise ValueError("Relative time text is empty")
 
-    current = now or datetime.now(UTC)
+    current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
-        current = current.replace(tzinfo=UTC)
+        current = current.replace(tzinfo=timezone.utc)
 
     if raw in {"just now", "moments ago"}:
         return current
@@ -138,7 +138,7 @@ def parse_forum_threads(html: str, now: datetime | None = None) -> list[ForumThr
                     problem_number=problem_number,
                     post_count=int(posts_match.group(1)),
                     last_activity=activity_text,
-                    last_activity_ts=activity_ts.astimezone(UTC).isoformat(),
+                    last_activity_ts=activity_ts.astimezone(timezone.utc).isoformat(),
                     last_author=last_author,
                     thread_url=urljoin(BASE_URL, href),
                     category=section_category,
