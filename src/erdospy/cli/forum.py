@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import Annotated
+from typing import Annotated, Optional
 
 import typer
 
@@ -21,7 +21,7 @@ def _preview(text: str, limit: int = 120) -> str:
 def forum_sync(
     db_path: DBOption = None,
     limit: Annotated[
-        int | None,
+        Optional[int],
         typer.Option(
             "--limit",
             min=1,
@@ -190,7 +190,7 @@ def forum_latest(
     db_path: DBOption = None,
     limit: Annotated[int, typer.Option("--limit", min=1, max=100)] = 20,
     category: Annotated[
-        str | None,
+        Optional[str],
         typer.Option("--category", help="Filter to problem, blog, or general threads."),
     ] = None,
 ) -> None:

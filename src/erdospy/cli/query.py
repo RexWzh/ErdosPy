@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import Annotated
+from typing import Annotated, Optional
 
 import typer
 
@@ -202,20 +202,22 @@ def search(
 @query_app.command(name="list")
 def list_problems(
     db_path: DBOption = None,
-    status: Annotated[str | None, typer.Option("--status")] = None,
-    tag: Annotated[str | None, typer.Option("--tag")] = None,
+    status: Annotated[Optional[str], typer.Option("--status")] = None,
+    tag: Annotated[Optional[str], typer.Option("--tag")] = None,
     has_prize: Annotated[
-        bool | None, typer.Option("--has-prize/--no-has-prize")
+        Optional[bool], typer.Option("--has-prize/--no-has-prize")
     ] = None,
     formalized: Annotated[
-        bool | None, typer.Option("--formalized/--no-formalized")
+        Optional[bool], typer.Option("--formalized/--no-formalized")
     ] = None,
-    has_lean: Annotated[bool | None, typer.Option("--has-lean/--no-has-lean")] = None,
+    has_lean: Annotated[
+        Optional[bool], typer.Option("--has-lean/--no-has-lean")
+    ] = None,
     has_reactions: Annotated[
-        bool | None, typer.Option("--has-reactions/--no-has-reactions")
+        Optional[bool], typer.Option("--has-reactions/--no-has-reactions")
     ] = None,
-    reaction_type: Annotated[str | None, typer.Option("--reaction-type")] = None,
-    text_query: Annotated[str | None, typer.Option("--query")] = None,
+    reaction_type: Annotated[Optional[str], typer.Option("--reaction-type")] = None,
+    text_query: Annotated[Optional[str], typer.Option("--query")] = None,
     limit: Annotated[int, typer.Option("--limit", min=1, max=500)] = 30,
     offset: Annotated[int, typer.Option("--offset", min=0)] = 0,
 ) -> None:

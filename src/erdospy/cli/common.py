@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Optional
 
 import typer
 
 DBOption = Annotated[
-    Path | None,
+    Optional[Path],
     typer.Option("--db", help="Use a specific SQLite database file."),
 ]
 

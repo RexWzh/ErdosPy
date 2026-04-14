@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Optional
 
 import httpx
 
@@ -30,7 +31,7 @@ class IncrementalUpdateResult:
 class IncrementalUpdater:
     """Track forum activity and changelog entries without full re-scrapes."""
 
-    def __init__(self, db_path: Path, client: httpx.Client | None = None):
+    def __init__(self, db_path: Path, client: Optional[httpx.Client] = None):
         self.db_path = db_path
         self.client = client or httpx.Client(
             headers={"User-Agent": "erdospy/0.1 incremental updater"},
@@ -60,7 +61,7 @@ class IncrementalUpdater:
     def full_sync(self) -> IncrementalUpdateResult:
         return self.full_sync_limited(limit=None)
 
-    def full_sync_limited(self, limit: int | None = None) -> IncrementalUpdateResult:
+    def full_sync_limited(self, limit: Optional[int] = None) -> IncrementalUpdateResult:
         detected_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
         threads = self.fetch_forum_threads()
         if limit is not None:

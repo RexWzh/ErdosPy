@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Optional
 
 import typer
 
@@ -37,7 +37,7 @@ def build(
 def update(
     db_path: DBOption = None,
     navigator_root: Annotated[
-        Path | None,
+        Optional[Path],
         typer.Option(
             "--navigator-root", help="Reserved path for source repo compatibility."
         ),
@@ -100,7 +100,7 @@ def update(
 def daily(
     db_path: DBOption = None,
     date: Annotated[
-        str | None,
+        Optional[str],
         typer.Option(
             "--date", help="Show progress for a specific UTC date, e.g. 2026-04-07."
         ),
