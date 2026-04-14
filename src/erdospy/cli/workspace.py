@@ -8,7 +8,7 @@ from typing import Optional
 import typer
 from typing_extensions import Annotated
 
-from .common import DBOption, get_console, get_table
+from .common import get_console, get_table
 from erdospy.workflow import update_workspace as workflow_update_workspace
 
 workspace_app = typer.Typer(
@@ -19,7 +19,9 @@ update_workspace = workflow_update_workspace
 
 @workspace_app.command()
 def build(
-    db_path: DBOption = None,
+    db_path: Optional[Path] = typer.Option(
+        None, "--db", help="Use a specific SQLite database file."
+    ),
     force: Annotated[
         bool, typer.Option("--force", help="Overwrite the target DB if it exists.")
     ] = False,
@@ -36,7 +38,9 @@ def build(
 
 @workspace_app.command()
 def update(
-    db_path: DBOption = None,
+    db_path: Optional[Path] = typer.Option(
+        None, "--db", help="Use a specific SQLite database file."
+    ),
     navigator_root: Annotated[
         Optional[Path],
         typer.Option(
@@ -99,7 +103,9 @@ def update(
 
 @workspace_app.command()
 def daily(
-    db_path: DBOption = None,
+    db_path: Optional[Path] = typer.Option(
+        None, "--db", help="Use a specific SQLite database file."
+    ),
     date: Annotated[
         Optional[str],
         typer.Option(
@@ -159,7 +165,9 @@ def daily(
 @workspace_app.command()
 def record(
     problem_number: str,
-    db_path: DBOption = None,
+    db_path: Optional[Path] = typer.Option(
+        None, "--db", help="Use a specific SQLite database file."
+    ),
     limit: Annotated[int, typer.Option("--limit", min=1, max=100)] = 10,
 ) -> None:
     """Show the recorded local change history for a specific problem."""

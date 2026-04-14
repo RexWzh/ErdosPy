@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Optional
 
 import typer
 from typing_extensions import Annotated
 
-from .common import DBOption, get_console, get_panel, get_table
+from .common import get_console, get_panel, get_table
 
 forum_app = typer.Typer(help="Extract and inspect full forum data.")
 
@@ -20,7 +21,9 @@ def _preview(text: str, limit: int = 120) -> str:
 
 @forum_app.command("sync")
 def forum_sync(
-    db_path: DBOption = None,
+    db_path: Optional[Path] = typer.Option(
+        None, "--db", help="Use a specific SQLite database file."
+    ),
     limit: Annotated[
         Optional[int],
         typer.Option(
@@ -78,7 +81,9 @@ def forum_sync(
 
 @forum_app.command("stats")
 def forum_stats(
-    db_path: DBOption = None,
+    db_path: Optional[Path] = typer.Option(
+        None, "--db", help="Use a specific SQLite database file."
+    ),
     as_json: Annotated[
         bool, typer.Option("--json", help="Output stats as JSON.")
     ] = False,
@@ -120,7 +125,9 @@ def forum_stats(
 @forum_app.command("thread")
 def forum_thread(
     thread_key: str,
-    db_path: DBOption = None,
+    db_path: Optional[Path] = typer.Option(
+        None, "--db", help="Use a specific SQLite database file."
+    ),
     as_json: Annotated[
         bool, typer.Option("--json", help="Output full stored thread data as JSON.")
     ] = False,
@@ -188,7 +195,9 @@ def forum_thread(
 
 @forum_app.command("latest")
 def forum_latest(
-    db_path: DBOption = None,
+    db_path: Optional[Path] = typer.Option(
+        None, "--db", help="Use a specific SQLite database file."
+    ),
     limit: Annotated[int, typer.Option("--limit", min=1, max=100)] = 20,
     category: Annotated[
         Optional[str],
@@ -230,7 +239,9 @@ def forum_latest(
 @forum_app.command("related")
 def forum_related(
     problem_number: str,
-    db_path: DBOption = None,
+    db_path: Optional[Path] = typer.Option(
+        None, "--db", help="Use a specific SQLite database file."
+    ),
     limit: Annotated[int, typer.Option("--limit", min=1, max=100)] = 20,
 ) -> None:
     """Show stored forum threads related to a specific problem."""
@@ -265,7 +276,9 @@ def forum_related(
 @forum_app.command("search")
 def forum_search(
     query: str,
-    db_path: DBOption = None,
+    db_path: Optional[Path] = typer.Option(
+        None, "--db", help="Use a specific SQLite database file."
+    ),
     limit: Annotated[int, typer.Option("--limit", min=1, max=100)] = 20,
 ) -> None:
     """Search stored forum posts and discussion titles."""
