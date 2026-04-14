@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Optional
 
 import typer
+from typing_extensions import Annotated
 
 from .common import DBOption, get_console, get_table
 from erdospy.workflow import update_workspace as workflow_update_workspace

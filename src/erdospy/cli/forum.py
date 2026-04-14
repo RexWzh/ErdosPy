@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import json
-from typing import Annotated, Optional
+from typing import Optional
 
 import typer
+from typing_extensions import Annotated
 
 from .common import DBOption, get_console, get_panel, get_table
 

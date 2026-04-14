@@ -5,9 +5,9 @@ from __future__ import annotations
 import functools
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from typing import Annotated
 
 import typer
+from typing_extensions import Annotated
 
 from .common import DBOption, get_console
 
