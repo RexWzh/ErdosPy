@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
+from typing import Optional
 
 import httpx
 
@@ -30,7 +31,7 @@ class IncrementalUpdateResult:
 class IncrementalUpdater:
     """Track forum activity and changelog entries without full re-scrapes."""
 
-    def __init__(self, db_path: Path, client: httpx.Client | None = None):
+    def __init__(self, db_path: Path, client: Optional[httpx.Client] = None):
         self.db_path = db_path
         self.client = client or httpx.Client(
             headers={"User-Agent": "erdospy/0.1 incremental updater"},
@@ -50,7 +51,7 @@ class IncrementalUpdater:
     def fetch_forum_threads(self) -> list[ForumThread]:
         response = self.client.get(f"{BASE_URL}/forum/")
         response.raise_for_status()
-        return parse_forum_threads(response.text, now=datetime.now(UTC))
+        return parse_forum_threads(response.text, now=datetime.now(timezone.utc))
 
     def fetch_thread_detail(self, thread: ForumThread):
         response = self.client.get(thread.thread_url)
@@ -60,8 +61,8 @@ class IncrementalUpdater:
     def full_sync(self) -> IncrementalUpdateResult:
         return self.full_sync_limited(limit=None)
 
-    def full_sync_limited(self, limit: int | None = None) -> IncrementalUpdateResult:
-        detected_at = datetime.now(UTC).replace(microsecond=0).isoformat()
+    def full_sync_limited(self, limit: Optional[int] = None) -> IncrementalUpdateResult:
+        detected_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
         threads = self.fetch_forum_threads()
         if limit is not None:
             threads = threads[:limit]
@@ -102,7 +103,7 @@ class IncrementalUpdater:
         )
 
     def run(self) -> IncrementalUpdateResult:
-        detected_at = datetime.now(UTC).replace(microsecond=0).isoformat()
+        detected_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
         threads = self.fetch_forum_threads()
         changelog_entries: list[ChangelogEntry] = []
         new_threads = 0

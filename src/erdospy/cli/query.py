@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import json
-from typing import Annotated
+from pathlib import Path
+from typing import Optional
 
 import typer
+from typing_extensions import Annotated
 
 from .common import (
-    DBOption,
     get_console,
     get_panel,
     get_table,
@@ -92,7 +93,11 @@ def _render_problem_table(problems: list, title: str) -> None:
 
 
 @query_app.command()
-def stats(db_path: DBOption = None) -> None:
+def stats(
+    db_path: Optional[Path] = typer.Option(
+        None, "--db", help="Use a specific SQLite database file."
+    ),
+) -> None:
     """Show dataset statistics."""
 
     from erdospy.db import ErdosDB
@@ -136,11 +141,13 @@ def stats(db_path: DBOption = None) -> None:
 @query_app.command()
 def get(
     number: str,
-    db_path: DBOption = None,
-    as_json: Annotated[bool, typer.Option("--json", help="Output raw JSON")] = False,
-    comments: Annotated[
-        bool, typer.Option("--comments", help="Include comments in output")
-    ] = False,
+    db_path: Optional[Path] = typer.Option(
+        None, "--db", help="Use a specific SQLite database file."
+    ),
+    as_json: bool = typer.Option(False, "--json", help="Output raw JSON"),
+    comments: bool = typer.Option(
+        False, "--comments", help="Include comments in output"
+    ),
 ) -> None:
     """Show a single problem."""
 
@@ -182,7 +189,9 @@ def get(
 @query_app.command()
 def search(
     query: str,
-    db_path: DBOption = None,
+    db_path: Optional[Path] = typer.Option(
+        None, "--db", help="Use a specific SQLite database file."
+    ),
     limit: Annotated[int, typer.Option("--limit", min=1, max=200)] = 20,
     offset: Annotated[int, typer.Option("--offset", min=0)] = 0,
 ) -> None:
@@ -201,21 +210,25 @@ def search(
 
 @query_app.command(name="list")
 def list_problems(
-    db_path: DBOption = None,
-    status: Annotated[str | None, typer.Option("--status")] = None,
-    tag: Annotated[str | None, typer.Option("--tag")] = None,
+    db_path: Optional[Path] = typer.Option(
+        None, "--db", help="Use a specific SQLite database file."
+    ),
+    status: Annotated[Optional[str], typer.Option("--status")] = None,
+    tag: Annotated[Optional[str], typer.Option("--tag")] = None,
     has_prize: Annotated[
-        bool | None, typer.Option("--has-prize/--no-has-prize")
+        Optional[bool], typer.Option("--has-prize/--no-has-prize")
     ] = None,
     formalized: Annotated[
-        bool | None, typer.Option("--formalized/--no-formalized")
+        Optional[bool], typer.Option("--formalized/--no-formalized")
     ] = None,
-    has_lean: Annotated[bool | None, typer.Option("--has-lean/--no-has-lean")] = None,
+    has_lean: Annotated[
+        Optional[bool], typer.Option("--has-lean/--no-has-lean")
+    ] = None,
     has_reactions: Annotated[
-        bool | None, typer.Option("--has-reactions/--no-has-reactions")
+        Optional[bool], typer.Option("--has-reactions/--no-has-reactions")
     ] = None,
-    reaction_type: Annotated[str | None, typer.Option("--reaction-type")] = None,
-    text_query: Annotated[str | None, typer.Option("--query")] = None,
+    reaction_type: Annotated[Optional[str], typer.Option("--reaction-type")] = None,
+    text_query: Annotated[Optional[str], typer.Option("--query")] = None,
     limit: Annotated[int, typer.Option("--limit", min=1, max=500)] = 30,
     offset: Annotated[int, typer.Option("--offset", min=0)] = 0,
 ) -> None:
@@ -265,7 +278,9 @@ def list_problems(
 @query_app.command()
 def progress(
     number: str,
-    db_path: DBOption = None,
+    db_path: Optional[Path] = typer.Option(
+        None, "--db", help="Use a specific SQLite database file."
+    ),
     as_json: Annotated[
         bool, typer.Option("--json", help="Output the full progress summary as JSON.")
     ] = False,
@@ -342,7 +357,9 @@ def progress(
 
 @query_app.command()
 def digest(
-    db_path: DBOption = None,
+    db_path: Optional[Path] = typer.Option(
+        None, "--db", help="Use a specific SQLite database file."
+    ),
     limit: Annotated[int, typer.Option("--limit", min=1, max=100)] = 10,
     as_json: Annotated[
         bool, typer.Option("--json", help="Output the digest as JSON.")

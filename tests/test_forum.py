@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 from erdospy.scraper.forum import (
     parse_forum_thread_detail,
@@ -10,16 +10,16 @@ from erdospy.scraper.forum import (
 
 
 def test_parse_relative_time_handles_common_units():
-    now = datetime(2026, 4, 7, 12, 0, tzinfo=UTC)
+    now = datetime(2026, 4, 7, 12, 0, tzinfo=timezone.utc)
 
     assert parse_relative_time("an hour ago", now=now) == datetime(
-        2026, 4, 7, 11, 0, tzinfo=UTC
+        2026, 4, 7, 11, 0, tzinfo=timezone.utc
     )
     assert parse_relative_time("2 days ago", now=now) == datetime(
-        2026, 4, 5, 12, 0, tzinfo=UTC
+        2026, 4, 5, 12, 0, tzinfo=timezone.utc
     )
     assert parse_relative_time("a month ago", now=now) == datetime(
-        2026, 3, 8, 12, 0, tzinfo=UTC
+        2026, 3, 8, 12, 0, tzinfo=timezone.utc
     )
 
 
@@ -42,7 +42,9 @@ def test_parse_forum_threads_reads_five_line_groups():
     </body></html>
     """
 
-    threads = parse_forum_threads(html, now=datetime(2026, 4, 7, 12, 0, tzinfo=UTC))
+    threads = parse_forum_threads(
+        html, now=datetime(2026, 4, 7, 12, 0, tzinfo=timezone.utc)
+    )
 
     assert len(threads) == 2
     assert threads[0].problem_number == "749"

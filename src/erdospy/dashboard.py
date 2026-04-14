@@ -5,13 +5,13 @@ from __future__ import annotations
 import html
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from .db import ErdosDB
 from .workflow import daily_history, resolve_db_path
 
 
-def resolve_dashboard_db_path(db_path: Path | None = None) -> Path:
+def resolve_dashboard_db_path(db_path: Optional[Path] = None) -> Path:
     if db_path is not None:
         return resolve_db_path(db_path)
 
@@ -21,7 +21,7 @@ def resolve_dashboard_db_path(db_path: Path | None = None) -> Path:
     raise FileNotFoundError("No workspace database found for dashboard rendering.")
 
 
-def dashboard_payload(db_path: Path | None = None) -> dict[str, Any]:
+def dashboard_payload(db_path: Optional[Path] = None) -> dict[str, Any]:
     resolved = resolve_dashboard_db_path(db_path)
     with ErdosDB(resolved) as db:
         stats = db.get_statistics()
@@ -59,7 +59,7 @@ def _list_items(rows: list[str]) -> str:
     return "<ul class='activity-list'>" + "".join(rows) + "</ul>"
 
 
-def render_dashboard_html(db_path: Path | None = None) -> str:
+def render_dashboard_html(db_path: Optional[Path] = None) -> str:
     try:
         payload = dashboard_payload(db_path)
     except (FileNotFoundError, OSError, ValueError):
@@ -263,7 +263,7 @@ def render_dashboard_html(db_path: Path | None = None) -> str:
 """
 
 
-def write_dashboard_html(output_path: Path, db_path: Path | None = None) -> Path:
+def write_dashboard_html(output_path: Path, db_path: Optional[Path] = None) -> Path:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(render_dashboard_html(db_path), encoding="utf-8")
     return output_path

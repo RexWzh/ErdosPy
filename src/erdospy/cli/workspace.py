@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Annotated
+from typing import Optional
 
 import typer
+from typing_extensions import Annotated
 
-from .common import DBOption, get_console, get_table
+from .common import get_console, get_table
 from erdospy.workflow import update_workspace as workflow_update_workspace
 
 workspace_app = typer.Typer(
@@ -18,7 +19,9 @@ update_workspace = workflow_update_workspace
 
 @workspace_app.command()
 def build(
-    db_path: DBOption = None,
+    db_path: Optional[Path] = typer.Option(
+        None, "--db", help="Use a specific SQLite database file."
+    ),
     force: Annotated[
         bool, typer.Option("--force", help="Overwrite the target DB if it exists.")
     ] = False,
@@ -35,9 +38,11 @@ def build(
 
 @workspace_app.command()
 def update(
-    db_path: DBOption = None,
+    db_path: Optional[Path] = typer.Option(
+        None, "--db", help="Use a specific SQLite database file."
+    ),
     navigator_root: Annotated[
-        Path | None,
+        Optional[Path],
         typer.Option(
             "--navigator-root", help="Reserved path for source repo compatibility."
         ),
@@ -98,9 +103,11 @@ def update(
 
 @workspace_app.command()
 def daily(
-    db_path: DBOption = None,
+    db_path: Optional[Path] = typer.Option(
+        None, "--db", help="Use a specific SQLite database file."
+    ),
     date: Annotated[
-        str | None,
+        Optional[str],
         typer.Option(
             "--date", help="Show progress for a specific UTC date, e.g. 2026-04-07."
         ),
@@ -158,7 +165,9 @@ def daily(
 @workspace_app.command()
 def record(
     problem_number: str,
-    db_path: DBOption = None,
+    db_path: Optional[Path] = typer.Option(
+        None, "--db", help="Use a specific SQLite database file."
+    ),
     limit: Annotated[int, typer.Option("--limit", min=1, max=100)] = 10,
 ) -> None:
     """Show the recorded local change history for a specific problem."""

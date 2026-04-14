@@ -6,7 +6,7 @@ import json
 import os
 import sqlite3
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from .models import (
     ChangelogEntry,
@@ -114,7 +114,7 @@ def initialize_empty_db(db_path: Path) -> None:
 class ErdosDB:
     """Query interface for the bundled Erdős problems database."""
 
-    def __init__(self, db_path: Path | None = None):
+    def __init__(self, db_path: Optional[Path] = None):
         self.db_path = db_path or default_db_path()
         self.conn = sqlite3.connect(self.db_path)
         self.conn.row_factory = sqlite3.Row
@@ -210,7 +210,7 @@ class ErdosDB:
             comments_count=int(row["comments_count"] or 0),
         )
 
-    def get_problem(self, number: str | int) -> Problem | None:
+    def get_problem(self, number: str | int) -> Optional[Problem]:
         cursor = self.conn.execute(
             "SELECT * FROM problems WHERE number = ?", (str(number),)
         )
@@ -359,14 +359,14 @@ class ErdosDB:
                 (number, f"Problem #{number}", int(row["problem_id"])),
             )
 
-    def get_problem_id(self, number: str | int) -> int | None:
+    def get_problem_id(self, number: str | int) -> Optional[int]:
         cursor = self.conn.execute(
             "SELECT id FROM problems WHERE number = ?", (str(number),)
         )
         row = cursor.fetchone()
         return int(row[0]) if row else None
 
-    def get_forum_thread(self, problem_number: str | int) -> dict[str, Any] | None:
+    def get_forum_thread(self, problem_number: str | int) -> Optional[dict[str, Any]]:
         problem_id = self.get_problem_id(problem_number)
         if problem_id is None:
             return None
@@ -555,7 +555,7 @@ class ErdosDB:
         ]
         return stats
 
-    def get_forum_thread_detail(self, thread_key: str) -> dict[str, Any] | None:
+    def get_forum_thread_detail(self, thread_key: str) -> Optional[dict[str, Any]]:
         self.ensure_tracking_schema()
         cursor = self.conn.execute(
             """

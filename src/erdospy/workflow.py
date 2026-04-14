@@ -8,7 +8,7 @@ import sqlite3
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
@@ -24,7 +24,7 @@ def default_workspace_db_path() -> Path:
     return workspace_root / "erdos_problems.db"
 
 
-def resolve_db_path(db_path: Path | None = None) -> Path:
+def resolve_db_path(db_path: Optional[Path] = None) -> Path:
     return (db_path or default_workspace_db_path()).expanduser().resolve()
 
 
@@ -69,7 +69,7 @@ class UpdateResult:
     changes: list[ChangeEvent]
 
 
-def initialize_workspace(db_path: Path | None = None, force: bool = False) -> Path:
+def initialize_workspace(db_path: Optional[Path] = None, force: bool = False) -> Path:
     resolved = resolve_db_path(db_path)
     resolved.parent.mkdir(parents=True, exist_ok=True)
 
@@ -110,7 +110,7 @@ def snapshot_problem_index(db_path: Path) -> dict[str, dict[str, Any]]:
         conn.close()
 
 
-def guess_navigator_root() -> Path | None:
+def guess_navigator_root() -> Optional[Path]:
     candidates = [
         Path(__file__).resolve().parents[3].parent / "erdos-navigator",
         Path(__file__).resolve().parents[4] / "reference" / "erdos-navigator",

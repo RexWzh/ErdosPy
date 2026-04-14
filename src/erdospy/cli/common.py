@@ -1,17 +1,5 @@
 """Shared CLI helpers for erdospy."""
 
-from __future__ import annotations
-
-from pathlib import Path
-from typing import Annotated
-
-import typer
-
-DBOption = Annotated[
-    Path | None,
-    typer.Option("--db", help="Use a specific SQLite database file."),
-]
-
 
 def get_console():
     from rich.console import Console

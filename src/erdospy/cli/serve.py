@@ -5,18 +5,21 @@ from __future__ import annotations
 import functools
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from typing import Annotated
+from typing import Optional
 
 import typer
+from typing_extensions import Annotated
 
-from .common import DBOption, get_console
+from .common import get_console
 
 serve_app = typer.Typer(help="Serve a simple local dashboard for erdospy.")
 
 
 @serve_app.command("dashboard")
 def serve_dashboard(
-    db_path: DBOption = None,
+    db_path: Optional[Path] = typer.Option(
+        None, "--db", help="Use a specific SQLite database file."
+    ),
     host: Annotated[str, typer.Option("--host", help="Host to bind.")] = "127.0.0.1",
     port: Annotated[int, typer.Option("--port", min=1, max=65535)] = 8000,
     output_dir: Annotated[

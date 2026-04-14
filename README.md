@@ -1,5 +1,9 @@
 # erdospy
 
+[![Docs](https://img.shields.io/badge/docs-mkdocs-blue)](https://rexwzh.github.io/ErdosPy/)
+[![Python](https://img.shields.io/badge/python-%3E%3D3.9-blue)](https://pypi.org/project/erdospy/)
+[![CI](https://github.com/RexWzh/ErdosPy/actions/workflows/ci.yml/badge.svg)](https://github.com/RexWzh/ErdosPy/actions/workflows/ci.yml)
+
 `erdospy` is a Python package and CLI for analyzing Erdős problems, tracking latest progress, and surfacing relevant discussions directly from the terminal.
 
 Documentation:
