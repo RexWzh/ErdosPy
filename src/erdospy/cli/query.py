@@ -144,9 +144,13 @@ def get(
     db_path: Optional[Path] = typer.Option(
         None, "--db", help="Use a specific SQLite database file."
     ),
-    as_json: Annotated[bool, typer.Option("--json", help="Output raw JSON")] = False,
+    as_json: Annotated[
+        bool,
+        typer.Option("--json", is_flag=True, help="Output raw JSON"),
+    ] = False,
     comments: Annotated[
-        bool, typer.Option("--comments", help="Include comments in output")
+        bool,
+        typer.Option("--comments", is_flag=True, help="Include comments in output"),
     ] = False,
 ) -> None:
     """Show a single problem."""
